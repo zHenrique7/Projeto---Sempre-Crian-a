@@ -26,11 +26,10 @@ class App:
         self.root.resizable(False, False)
 
 
-        # Usando CTkImage ao invés de PhotoImage
         img = CTkImage(Image.open("icon.png"), size=(310, 230))
         self.label_img = customtkinter.CTkLabel(master=self.root, image=img, text="")
-        self.label_img.image = img  # Mantenha a referência à imagem
-        self.label_img.place(x=5, y=100)  # Ajuste o posicionamento da imagem conforme necessário
+        self.label_img.image = img  
+        self.label_img.place(x=5, y=100) 
 
         # Frame na direita -------------
         cadastro_frame = customtkinter.CTkFrame(master=self.root, width=370, height=500, corner_radius=20, fg_color="#ffffdc")
@@ -85,8 +84,8 @@ class App:
 
         img = CTkImage(Image.open("icon.png"), size=(310,230))
         self.label_img = customtkinter.CTkLabel(self.nova_janela, image=img, text="")
-        self.label_img.image = img  # Mantenha a referência à imagem
-        self.label_img.place(x=5, y=100)  # Ajuste o posicionamento da imagem conforme necessário
+        self.label_img.image = img  
+        self.label_img.place(x=5, y=100) 
 
         # Nome
         nome_label = customtkinter.CTkLabel(self.nova_janela, text="Nome:", bg_color="#ffffdc", text_color='black')
@@ -99,7 +98,7 @@ class App:
         dt_nasc.place(x=415, y=50)
 
         self.date_entry = DateEntry(self.nova_janela, width=12, background='#f2f28d', foreground='black', borderwidth=2, date_pattern="dd/MM/yyyy")
-        self.date_entry.place(x=500, y=55)  # Ajuste a posição conforme necessário
+        self.date_entry.place(x=500, y=55)  
 
         # self.data_nasc_entry = customtkinter.CTkEntry(self.nova_janela)
         # self.data_nasc_entry.place(x=80, y=50,)
@@ -179,9 +178,6 @@ class App:
         termo = self.termo_var.get()
         certidao = self.certidao_var.get()
 
-        # Adicione aqui o código para salvar os dados
-        # Pode ser em um banco de dados, arquivo, etc.
-        # Por exemplo:
         print(f"Nome: {nome}")
         print(f"Data de Nascimento: {data_nasc}")
         print(f"Telefone: {telefone}")
