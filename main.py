@@ -42,10 +42,10 @@ class App:
         cadastrar_criancas_button = customtkinter.CTkButton(master=cadastro_frame, text="Cadastrar crianças", width=140, height=50, fg_color="#FFD700", text_color="#1e1e1e", corner_radius=10, command=self.abrir_janela_cadastro_criancas)
         cadastrar_criancas_button.place(x=20, y=150)
 
-        cadastrar_voluntarios_button = customtkinter.CTkButton(master=cadastro_frame, text="Cadastrar voluntários", width=100, height=50, fg_color="#FFD700", text_color="#1e1e1e", corner_radius=10)
+        cadastrar_voluntarios_button = customtkinter.CTkButton(master=cadastro_frame, text="Cadastrar voluntários", width=100, height=50, fg_color="#FFD700", text_color="#1e1e1e", corner_radius=10, command=self.abrir_janela_cadastro_voluntarios)
         cadastrar_voluntarios_button.place(x=200, y=150)
 
-        consultar_criancas_button = customtkinter.CTkButton(master=cadastro_frame, text="Consultar Crianças", width=140, height=50, fg_color="#FFD700", text_color="#1e1e1e", corner_radius=10)
+        consultar_criancas_button = customtkinter.CTkButton(master=cadastro_frame, text="Consultar Crianças", width=140, height=50, fg_color="#FFD700", text_color="#1e1e1e", corner_radius=10, command=self.abrir_janela_consulta_crianca)
         consultar_criancas_button.place(x=20, y=250)
 
         consultar_voluntarios_button = customtkinter.CTkButton(master=cadastro_frame, text="Consultar Voluntários", width=140, height=50, fg_color="#FFD700", text_color="#1e1e1e", corner_radius=10)
@@ -89,49 +89,55 @@ class App:
 
         # Nome
         nome_label = customtkinter.CTkLabel(self.nova_janela, text="Nome:", bg_color="#ffffdc", text_color='black')
-        nome_label.place(x=430, y=10)
+        nome_label.place(x=495, y=10)
         self.nome_entry = customtkinter.CTkEntry(self.nova_janela)
-        self.nome_entry.place(x=490, y=10,)
+        self.nome_entry.place(x=560, y=10,)
 
         # Data de nascimento
         dt_nasc = customtkinter.CTkLabel(self.nova_janela, text="Data de\nNascimento:", bg_color="#ffffdc", text_color='black')
-        dt_nasc.place(x=415, y=50)
+        dt_nasc.place(x=475, y=60)
 
         self.date_entry = DateEntry(self.nova_janela, width=12, background='#f2f28d', foreground='black', borderwidth=2, date_pattern="dd/MM/yyyy")
-        self.date_entry.place(x=500, y=55)
+        self.date_entry.place(x=580, y=65)
 
         # self.data_nasc_entry = customtkinter.CTkEntry(self.nova_janela)
         # self.data_nasc_entry.place(x=80, y=50,)
 
         # Telefone --------------------
         telefone_label = customtkinter.CTkLabel(self.nova_janela, text="Telefone:", bg_color="#ffffdc", text_color='black')
-        telefone_label.place(x=420, y=90)
+        telefone_label.place(x=490, y=110)
         self.telefone_entry = customtkinter.CTkEntry(self.nova_janela)
-        self.telefone_entry.place(x=490, y=90,)
+        self.telefone_entry.place(x=560, y=110)
 
         #CPF -----------------------
         cpf_responsavel = customtkinter.CTkLabel(self.nova_janela, text="CPF do \nResponsável:" , bg_color="#ffffdc", text_color='black')
-        cpf_responsavel.place(x=410, y=130)
+        cpf_responsavel.place(x=475, y=150)
         self.cpf_responsavel = customtkinter.CTkEntry(self.nova_janela)
-        self.cpf_responsavel.place(x=490, y=135,)
+        self.cpf_responsavel.place(x=560, y=150,)
 
         #RG ------------------
         rg_resp = customtkinter.CTkLabel(self.nova_janela, text="RG do \nResponsável:", bg_color="#ffffdc", text_color='black')
-        rg_resp.place(x=410, y=175)
+        rg_resp.place(x=475, y=190)
         self.rg_resp = customtkinter.CTkEntry(self.nova_janela)
-        self.rg_resp.place(x=490, y=180,)
+        self.rg_resp.place(x=560, y=190,)
 
         #NOME DO RESPONSÁVEL ----------------------------
         nome_resp = customtkinter.CTkLabel(self.nova_janela, text="Nome do\nResponsável:", bg_color="#ffffdc", text_color='black')
-        nome_resp.place(x=475, y=220)
+        nome_resp.place(x=475, y=230)
         self.nome_resp = customtkinter.CTkEntry(self.nova_janela)
-        self.nome_resp.place(x=560, y=220,)
+        self.nome_resp.place(x=560, y=230,)
 
         #ENDEREÇO ----------------------------
         endereco = customtkinter.CTkLabel(self.nova_janela, text="Endereço:", bg_color="#ffffdc", text_color='black')
-        endereco.place(x=475, y=250)
+        endereco.place(x=475, y=270)
         self.endereco = customtkinter.CTkEntry(self.nova_janela)
-        self.endereco.place(x=560, y=250,)
+        self.endereco.place(x=560, y=270,)
+
+        #PROJETO ----------------------------
+        projeto= customtkinter.CTkLabel(self.nova_janela, text="Projeto:", bg_color="#ffffdc", text_color='black')
+        projeto.place(x=475, y=310)
+        self.projeto = customtkinter.CTkEntry(self.nova_janela)
+        self.projeto.place(x=560, y=310,)
 
 
         #DECLARAÇÃO ESCOLAR -----------------
@@ -218,6 +224,93 @@ class App:
 # FIM DA JANELA DE CADASTRO DE CRIANÇAS --------------------------------
 
 
+# JANELA DE CADASTRO DE CRIANÇAS -------------------------------------
+    def abrir_janela_cadastro_voluntarios(self):
+        self.janela_voluntario = customtkinter.CTkToplevel(self.root)
+        self.janela_voluntario.title("Cadastro de Voluntários")
+        self.janela_voluntario.iconbitmap("logo.ico")
+        self.janela_voluntario.geometry("800x600")
+        self.janela_voluntario.resizable(False, False)
+
+        # Configurar grid
+        self.janela_voluntario.grid_columnconfigure(0, weight=1)
+        self.janela_voluntario.grid_columnconfigure(1, weight=3)
+
+        # Frame na direita -------------
+        crianca_frame = customtkinter.CTkFrame(self.janela_voluntario, width=470, height=600, corner_radius=20, fg_color="#ffffdc")
+        crianca_frame.pack(side=RIGHT, padx=0, pady=0)
+
+        label = customtkinter.CTkLabel(crianca_frame, text='', font=('Roboto', 20, 'bold'), text_color='black')
+        label.place(x=35, y=50)
+
+        img = CTkImage(Image.open("logo.png"), size=(310,230))
+        self.label_img = customtkinter.CTkLabel(self.janela_voluntario, image=img, text="")
+        self.label_img.image = img
+        self.label_img.place(x=5, y=100)
+
+        # Nome
+        nome_label = customtkinter.CTkLabel(self.janela_voluntario, text="Nome:", bg_color="#ffffdc", text_color='black')
+        nome_label.place(x=500, y=120)
+        self.nome_entry = customtkinter.CTkEntry(self.janela_voluntario)
+        self.nome_entry.place(x=560, y=120, )
+
+        # Telefone --------------------
+        telefone_label = customtkinter.CTkLabel(self.janela_voluntario, text="Telefone:", bg_color="#ffffdc", text_color='black')
+        telefone_label.place(x=490, y=220)
+        self.telefone_entry = customtkinter.CTkEntry(self.janela_voluntario)
+        self.telefone_entry.place(x=560, y=220)
+
+        # EMAIL --------------------
+        email_label = customtkinter.CTkLabel(self.janela_voluntario, text="Email:", bg_color="#ffffdc", text_color='black')
+        email_label.place(x=500, y=170)
+        self.email_entry = customtkinter.CTkEntry(self.janela_voluntario)
+        self.email_entry.place(x=560, y=170)
+
+        # PROFISSÃO --------------------
+        profissao_label = customtkinter.CTkLabel(self.janela_voluntario, text="Profissão:", bg_color="#ffffdc", text_color='black')
+        profissao_label.place(x=490, y=270)
+        self.profissao_entry = customtkinter.CTkEntry(self.janela_voluntario)
+        self.profissao_entry.place(x=560, y=270)
+
+        #PROJETO ----------------------------
+        projeto= customtkinter.CTkLabel(self.janela_voluntario, text="Projeto:", bg_color="#ffffdc", text_color='black')
+        projeto.place(x=500, y=320)
+        self.projeto = customtkinter.CTkEntry(self.janela_voluntario)
+        self.projeto.place(x=560, y=320,)
+
+        # Já participou de algum projeto? -----------------------------
+        self.participacao_var = StringVar() #Variável de controle
+
+        participacao_label = customtkinter.CTkLabel(self.janela_voluntario, text="Já participou\n de algum projeto?", bg_color="#ffffdc", text_color='black')
+        participacao_label.place(x=465, y=370)
+        participacao_sim = customtkinter.CTkRadioButton(self.janela_voluntario, text="Sim", variable=self.participacao_var, value="Sim", bg_color="#ffffdc", text_color='black')
+        participacao_sim.place(x=585, y=370)
+        participacao_nao = customtkinter.CTkRadioButton(self.janela_voluntario, text="Não", variable=self.participacao_var, value="Não", bg_color="#ffffdc", text_color='black')
+        participacao_nao.place(x=645, y=370)
+
+
+        # Botão CONFIRMAR
+        confirmar_button = customtkinter.CTkButton(self.janela_voluntario, text="CONFIRMAR", width=170, height=50, corner_radius=15,command=self.salvar_informacoes)
+        confirmar_button.place(x=515, y=420)
+
+        # JANELA DE CONSULTA DE CRIANÇAS -------------------------------------
+    def abrir_janela_consulta_crianca(self):
+        self.consulta_criancas = customtkinter.CTkToplevel(self.root)
+        self.consulta_criancas.title("Consulta de crianças")
+        self.consulta_criancas.iconbitmap("logo.ico")
+        self.consulta_criancas.state('zoomed')
+        self.consulta_criancas.resizable(False, False)
+
+        # Configurar grid
+        self.consulta_criancas.grid_columnconfigure(0, weight=1)
+        self.consulta_criancas.grid_columnconfigure(1, weight=3)
+
+
+        # Criar e configurar a treeview para exibir os dados
+        self.tree = Treeview(self.consulta_criancas, columns=("Nome", "Idade"), show="headings", style="Custom.Treeview")
+        self.tree.heading("Nome", text="Nome")
+        self.tree.heading("Idade", text="Idade")
+        self.tree.pack(padx=10, pady=10)
 
 
 # Criação da janela principal
