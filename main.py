@@ -1,10 +1,40 @@
-from tkinter import filedialog
-
+from tkinter import filedialog, ttk
+from tkinter.ttk import Treeview
 import customtkinter
 from customtkinter import CTkImage
 from tkinter import *
 from PIL import Image  # Importação correta do Pillow
 from tkcalendar import Calendar, DateEntry
+import mysql.connector
+from datetime import datetime
+
+
+conexao=mysql.connector.connect(
+    host='localhost',
+    user='root',
+    passwd='',
+    database='SempreCriança'
+)
+
+cursor = conexao.cursor()
+# cursor.execute('''Create table Crianças(
+# nome VARCHAR(50) NOT NULL,
+# data_nascimento DATE NOT NULL,
+# telefone VARCHAR(11) NOT NULL,
+# cpf_responsavel VARCHAR(14) PRIMARY KEY NOT NULL,
+# rg_resp VARCHAR(9) NOT NULL,
+# nome_resp VARCHAR(50) NOT NULL,
+# projeto VARCHAR(20) NOT NULL,
+# declaracao_escolar VARCHAR(10),
+# vacinacao VARCHAR(10),
+# termo_imagem VARCHAR(10)
+# )'''
+# )
+
+
+
+conexao.commit()
+
 
 
 class App:
@@ -13,6 +43,8 @@ class App:
         self.tema()
         self.create_widgets()
         self.aparencia()
+        self.consulta_criancas_tree = None  # Inicialização da Treeview para consulta de crianças
+        self.cursor = conexao.cursor()
 
     def tema(self):
         customtkinter.set_appearance_mode("light")
@@ -94,8 +126,8 @@ class App:
         self.nome_entry.place(x=560, y=10,)
 
         # Data de nascimento
-        dt_nasc = customtkinter.CTkLabel(self.nova_janela, text="Data de\nNascimento:", bg_color="#ffffdc", text_color='black')
-        dt_nasc.place(x=475, y=60)
+        data_nascimento = customtkinter.CTkLabel(self.nova_janela, text="Data de\nNascimento:", bg_color="#ffffdc", text_color='black')
+        data_nascimento.place(x=475, y=60)
 
         self.date_entry = DateEntry(self.nova_janela, width=12, background='#f2f28d', foreground='black', borderwidth=2, date_pattern="dd/MM/yyyy")
         self.date_entry.place(x=580, y=65)
@@ -175,56 +207,72 @@ class App:
         termo_nao.place(x=630, y=440)
 
         # Certidão de nascimento (PDF)
-        self.certidao_var = StringVar()  # Variável de controle para o caminho do arquivo PDF
-
-        certidao_label = customtkinter.CTkLabel(self.nova_janela, text="Certidão de Nascimento (PDF):", bg_color="#ffffdc", text_color='black')
-        certidao_label.place(x=470, y=490)
-        certidao_button = customtkinter.CTkButton(self.nova_janela, text="Selecionar Arquivo", bg_color="#ffffdc",
-                                                  command=self.selecionar_certidao)
-        certidao_button.place(x=490, y=520)
+        # self.certidao_var = StringVar()  # Variável de controle para o caminho do arquivo PDF
+        #
+        # certidao_label = customtkinter.CTkLabel(self.nova_janela, text="Certidão de Nascimento (PDF):", bg_color="#ffffdc", text_color='black')
+        # certidao_label.place(x=470, y=490)
+        # certidao_button = customtkinter.CTkButton(self.nova_janela, text="Selecionar Arquivo", bg_color="#ffffdc",
+        #                                           command=self.selecionar_certidao)
+        # certidao_button.place(x=490, y=520)
 
         # Botão CONFIRMAR
         confirmar_button = customtkinter.CTkButton(self.nova_janela, text="CONFIRMAR", width=170, height=50, corner_radius=15,command=self.salvar_informacoes)
         confirmar_button.place(x=260, y=545)
 
-    def selecionar_certidao(self):
-        # filepath = filedialog.askopenfilename(initialdir="/", title="Selecione um arquivo",
-        #                                       filetypes=(("Arquivos PDF", "*.pdf"), ("Todos os arquivos", "*.*")))
-        # Exibe a janela de seleção de arquivo para salvar o PDF
-        filepath = filedialog.asksaveasfilename(defaultextension=".pdf",
-                                                filetypes=(("Arquivos PDF", "*.pdf"), ("Todos os arquivos", "*.*")))
-        if filepath:
-            # Aqui você pode adicionar código para salvar o arquivo PDF usando o caminho 'filepath'
-            customtkinter.messagebox.showinfo("Sucesso", f"Arquivo PDF salvo em:\n{filepath}")
-        else:
-            customtkinter.messagebox.showwarning("Cancelado", "Nenhum arquivo foi selecionado para salvar.")
-
+    # def selecionar_certidao(self):
+    #     # filepath = filedialog.askopenfilename(initialdir="/", title="Selecione um arquivo",
+    #     #                                       filetypes=(("Arquivos PDF", "*.pdf"), ("Todos os arquivos", "*.*")))
+    #     # Exibe a janela de seleção de arquivo para salvar o PDF
+    #     filepath = filedialog.asksaveasfilename(defaultextension=".pdf",
+    #                                             filetypes=(("Arquivos PDF", "*.pdf"), ("Todos os arquivos", "*.*")))
+    #     if filepath:
+    #         # Aqui você pode adicionar código para salvar o arquivo PDF usando o caminho 'filepath'
+    #         customtkinter.messagebox.showinfo("Sucesso", f"Arquivo PDF salvo em:\n{filepath}")
+    #     else:
+    #         customtkinter.messagebox.showwarning("Cancelado", "Nenhum arquivo foi selecionado para salvar.")
 
     def salvar_informacoes(self):
         # Coleta os dados dos campos de entrada
         nome = self.nome_entry.get()
-        data_nasc = self.date_entry.get()
+        data_nascimento = self.date_entry.get_date()
         telefone = self.telefone_entry.get()
         cpf = self.cpf_responsavel.get()
         rg = self.rg_resp.get()
+        nome_resp = self.nome_resp.get()
+        projeto = self.projeto.get()
+        declaracao = self.declaracao_var.get()
         vacinacao = self.vacina_var.get()
         termo = self.termo_var.get()
-        certidao = self.certidao_var.get()
+        # certidao = self.certidao_var.get()
 
+
+        # Inserir os dados no banco de dados
+        self.cursor.execute('''
+        INSERT INTO Crianças (nome, data_nascimento, telefone, cpf_responsavel, rg_resp, nome_resp, projeto, declaracao_escolar, vacinacao, termo_imagem)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        
+        ''', (nome, data_nascimento, telefone, cpf, rg, nome_resp, projeto, declaracao, vacinacao, termo))
+        conexao.commit()
+
+        # Exibe os dados no console (apenas para verificação)
         print(f"Nome: {nome}")
-        print(f"Data de Nascimento: {data_nasc}")
+        print(f"Data de Nascimento: {data_nascimento}")
         print(f"Telefone: {telefone}")
         print(f"CPF do Responsável: {cpf}")
         print(f"RG do Responsável: {rg}")
+        print(f"Nome do Responsável: {nome_resp}")
+        print(f"Projeto: {projeto}")
+        print(f"Declaração Escolar: {declaracao}")
         print(f"Vacinação em dia: {vacinacao}")
-        print(f"Termo assinado: {termo}")
-        print(f"Certidão de Nascimento: {certidao}")
+        print(f"Termo de imagem assinado: {termo}")
+        # print(f"Certidão de Nascimento: {certidao}")
+
 
 
 # FIM DA JANELA DE CADASTRO DE CRIANÇAS --------------------------------
 
 
-# JANELA DE CADASTRO DE CRIANÇAS -------------------------------------
+# JANELA DE CADASTRO DE VOLUNTARIOS -------------------------------------
     def abrir_janela_cadastro_voluntarios(self):
         self.janela_voluntario = customtkinter.CTkToplevel(self.root)
         self.janela_voluntario.title("Cadastro de Voluntários")
@@ -305,12 +353,41 @@ class App:
         self.consulta_criancas.grid_columnconfigure(0, weight=1)
         self.consulta_criancas.grid_columnconfigure(1, weight=3)
 
+        # Frame para Treeview e Scrollbars
+        frame_tree = customtkinter.CTkFrame(self.consulta_criancas)
+        frame_tree.pack(padx=1, pady=1, fill="both")
 
-        # Criar e configurar a treeview para exibir os dados
-        self.tree = Treeview(self.consulta_criancas, columns=("Nome", "Idade"), show="headings", style="Custom.Treeview")
+        # Criar a treeview para exibir os dados
+        self.tree = ttk.Treeview(self.consulta_criancas, columns=(
+        "Nome", "Data de Nascimento", "Telefone", "CPF responsável", "RG responsável", "Nome responsável",
+        "Projeto", "Declaração escolar", "Vacinação", "Termo de imagem"), show="headings")
+
         self.tree.heading("Nome", text="Nome")
-        self.tree.heading("Idade", text="Idade")
-        self.tree.pack(padx=10, pady=10)
+        self.tree.heading("Data de Nascimento", text="Data de Nascimento")
+        self.tree.heading("Telefone", text="Telefone")
+        self.tree.heading("CPF responsável", text="CPF responsável")
+        self.tree.heading("RG responsável", text="RG responsável")
+        self.tree.heading("Nome responsável", text="Nome responsável")
+        self.tree.heading("Projeto", text="Projeto")
+        self.tree.heading("Declaração escolar", text="Declaração escolar")
+        self.tree.heading("Vacinação", text="Vacinação")
+        self.tree.heading("Termo de imagem", text="Termo de imagem")
+        self.tree.pack(side="left", fill="both", expand=True)
+
+        # Adicionar barras de rolagem
+        scrollbar_vertical = ttk.Scrollbar(frame_tree, orient="vertical", command=self.tree.yview)
+        scrollbar_vertical.pack(side="right", fill="y")
+        self.tree.configure(yscroll=scrollbar_vertical.set)
+
+        scrollbar_horizontal = ttk.Scrollbar(frame_tree, orient="horizontal", command=self.tree.xview)
+        scrollbar_horizontal.pack(side="bottom", fill="x")
+        self.tree.configure(xscroll=scrollbar_horizontal.set)
+
+        # Buscar dados do banco de dados e adicionar ao Treeview
+        self.cursor.execute('SELECT * FROM Crianças')
+        rows = self.cursor.fetchall()
+        for row in rows:
+            self.tree.insert("", "end", values=row)
 
 
 # Criação da janela principal
