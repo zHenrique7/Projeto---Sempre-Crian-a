@@ -6,7 +6,9 @@ from tkinter import *
 from PIL import Image, ImageTk  # Importação correta do Pillow
 from tkcalendar import Calendar, DateEntry
 import mysql.connector
+import ctypes
 from datetime import datetime
+
 
 conexao = mysql.connector.connect(
     host='localhost',
@@ -72,8 +74,12 @@ class App:
         self.consulta_criancas_tree = None  # Inicialização da Treeview para consulta de crianças
         self.cursor = conexao.cursor()
         self.tree = None  # Inicialize o atributo tree
+        self.root.iconbitmap("icone.ico")
 
-
+        # ICONE DO APLICATIVO --------
+        myappid = 'mycompany.myproduct.subproduct.version'
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+        root.iconbitmap('icone.ico')
     def tema(self):
         customtkinter.set_appearance_mode("light")
         customtkinter.set_default_color_theme("dark-blue")
@@ -81,7 +87,6 @@ class App:
     def create_widgets(self):
         self.root.geometry("700x500")
         self.root.title("Sempre criança")
-        self.root.iconbitmap("icone.ico")
         self.root.resizable(False, False)
 
         img = CTkImage(Image.open("icon.png"), size=(310, 230))
@@ -166,7 +171,7 @@ class App:
         # Nome
         nome_label = customtkinter.CTkLabel(self.nova_janela, text="Nome:", bg_color="#ffffdc", text_color='black')
         nome_label.place(x=495, y=10)
-        self.nome_entry = customtkinter.CTkEntry(self.nova_janela)
+        self.nome_entry = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
         self.nome_entry.place(x=560, y=10, )
 
         # Data de nascimento
@@ -185,40 +190,40 @@ class App:
         telefone_label = customtkinter.CTkLabel(self.nova_janela, text="Telefone:", bg_color="#ffffdc",
                                                 text_color='black')
         telefone_label.place(x=490, y=110)
-        self.telefone_entry = customtkinter.CTkEntry(self.nova_janela)
+        self.telefone_entry = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
         self.telefone_entry.place(x=560, y=110)
 
         # CPF -----------------------
         cpf_responsavel = customtkinter.CTkLabel(self.nova_janela, text="CPF do \nResponsável:", bg_color="#ffffdc",
                                                  text_color='black')
         cpf_responsavel.place(x=475, y=150)
-        self.cpf_responsavel = customtkinter.CTkEntry(self.nova_janela)
+        self.cpf_responsavel = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
         self.cpf_responsavel.place(x=560, y=150, )
 
         # RG ------------------
         rg_resp = customtkinter.CTkLabel(self.nova_janela, text="RG do \nResponsável:", bg_color="#ffffdc",
                                          text_color='black')
         rg_resp.place(x=475, y=190)
-        self.rg_resp = customtkinter.CTkEntry(self.nova_janela)
+        self.rg_resp = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
         self.rg_resp.place(x=560, y=190, )
 
         # NOME DO RESPONSÁVEL ----------------------------
         nome_resp = customtkinter.CTkLabel(self.nova_janela, text="Nome do\nResponsável:", bg_color="#ffffdc",
                                            text_color='black')
         nome_resp.place(x=475, y=230)
-        self.nome_resp = customtkinter.CTkEntry(self.nova_janela)
+        self.nome_resp = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
         self.nome_resp.place(x=560, y=230, )
 
         # ENDEREÇO ----------------------------
         endereco = customtkinter.CTkLabel(self.nova_janela, text="Endereço:", bg_color="#ffffdc", text_color='black')
         endereco.place(x=475, y=270)
-        self.endereco = customtkinter.CTkEntry(self.nova_janela)
+        self.endereco = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
         self.endereco.place(x=560, y=270, )
 
         # PROJETO ----------------------------
         projeto = customtkinter.CTkLabel(self.nova_janela, text="Projeto:", bg_color="#ffffdc", text_color='black')
         projeto.place(x=475, y=310)
-        self.projeto = customtkinter.CTkEntry(self.nova_janela)
+        self.projeto = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
         self.projeto.place(x=560, y=310, )
 
         # DECLARAÇÃO ESCOLAR -----------------
@@ -273,8 +278,8 @@ class App:
 
         # Botão CONFIRMAR
         confirmar_button = customtkinter.CTkButton(self.nova_janela, text="CONFIRMAR", width=170, height=50,
-                                                   corner_radius=15, command=self.salvar_informacoes)
-        confirmar_button.place(x=260, y=545)
+                                                   corner_radius=15, bg_color= '#ffffdc', command=self.salvar_informacoes)
+        confirmar_button.place(x=485, y=530)
 
     # def selecionar_certidao(self):
     #     # filepath = filedialog.askopenfilename(initialdir="/", title="Selecione um arquivo",
@@ -287,6 +292,8 @@ class App:
     #         customtkinter.messagebox.showinfo("Sucesso", f"Arquivo PDF salvo em:\n{filepath}")
     #     else:
     #         customtkinter.messagebox.showwarning("Cancelado", "Nenhum arquivo foi selecionado para salvar.")
+
+
 
     def salvar_informacoes(self):
         # Coleta os dados dos campos de entrada
@@ -363,35 +370,35 @@ class App:
         nome_label = customtkinter.CTkLabel(self.janela_voluntario, text="Nome:", bg_color="#ffffdc",
                                             text_color='black')
         nome_label.place(x=500, y=120)
-        self.nome_entry = customtkinter.CTkEntry(self.janela_voluntario)
+        self.nome_entry = customtkinter.CTkEntry(self.janela_voluntario, bg_color= '#ffffdc')
         self.nome_entry.place(x=560, y=120, )
 
         # Telefone --------------------
         telefone_label = customtkinter.CTkLabel(self.janela_voluntario, text="Telefone:", bg_color="#ffffdc",
                                                 text_color='black')
         telefone_label.place(x=490, y=220)
-        self.telefone_entry = customtkinter.CTkEntry(self.janela_voluntario)
+        self.telefone_entry = customtkinter.CTkEntry(self.janela_voluntario, bg_color= '#ffffdc')
         self.telefone_entry.place(x=560, y=220)
 
         # EMAIL --------------------
         email_label = customtkinter.CTkLabel(self.janela_voluntario, text="Email:", bg_color="#ffffdc",
                                              text_color='black')
         email_label.place(x=500, y=170)
-        self.email_entry = customtkinter.CTkEntry(self.janela_voluntario)
+        self.email_entry = customtkinter.CTkEntry(self.janela_voluntario, bg_color= '#ffffdc')
         self.email_entry.place(x=560, y=170)
 
         # PROFISSÃO --------------------
         profissao_label = customtkinter.CTkLabel(self.janela_voluntario, text="Profissão:", bg_color="#ffffdc",
                                                  text_color='black')
         profissao_label.place(x=490, y=270)
-        self.profissao_entry = customtkinter.CTkEntry(self.janela_voluntario)
+        self.profissao_entry = customtkinter.CTkEntry(self.janela_voluntario, bg_color= '#ffffdc')
         self.profissao_entry.place(x=560, y=270)
 
         # PROJETO ----------------------------
         projeto = customtkinter.CTkLabel(self.janela_voluntario, text="Projeto:", bg_color="#ffffdc",
                                          text_color='black')
         projeto.place(x=500, y=320)
-        self.projeto = customtkinter.CTkEntry(self.janela_voluntario)
+        self.projeto = customtkinter.CTkEntry(self.janela_voluntario, bg_color= '#ffffdc')
         self.projeto.place(x=560, y=320, )
 
         # Já participou de algum projeto? -----------------------------
@@ -411,7 +418,7 @@ class App:
 
         # Botão CONFIRMAR
         confirmar_button = customtkinter.CTkButton(self.janela_voluntario, text="CONFIRMAR", width=170, height=50,
-                                                   corner_radius=15, command=self.salvar_informacoes_voluntarios)
+                                                   corner_radius=15, bg_color= '#ffffdc', command=self.salvar_informacoes_voluntarios)
         confirmar_button.place(x=515, y=420)
 
     def salvar_informacoes_voluntarios(self):
@@ -483,12 +490,12 @@ class App:
 
         # Botão Atualizar
         atualizar_button = customtkinter.CTkButton(self.consulta_criancas, text="Atualizar", width=80, height=40,
-                                                   corner_radius=15, command=self.abrir_janela_editar_crianca)
+                                                   corner_radius=15, bg_color= '#ffffdc', command=self.abrir_janela_editar_crianca)
         atualizar_button.place(x=50, y=85)
 
         # Botão Excluir
         excluir_button = customtkinter.CTkButton(self.consulta_criancas, text="Excluir", width=80, height=40,
-                                                   corner_radius=15, command=self.excluir_dados_selecionados)
+                                                   corner_radius=15, bg_color= '#ffffdc', command=self.excluir_dados_selecionados)
         excluir_button.place(x=150, y=85)
 
         # Carregar e redimensionar a imagem usando PIL
@@ -499,23 +506,23 @@ class App:
 
         # Criar o botão de pesquisa com a imagem
         pesquisar_button = customtkinter.CTkButton(self.consulta_criancas, text="", width=10, height=10,
-                                                   image=lupa,
+                                                   image=lupa, bg_color= '#ffffdc',
                                                    command=self.pesquisar_por_nome,
                                                    )
         pesquisar_button.place(x=810, y=88)
 
         # Campo de entrada para inserir o nome a ser pesquisado
-        self.pesquisar_entry = customtkinter.CTkEntry(self.consulta_criancas)
+        self.pesquisar_entry = customtkinter.CTkEntry(self.consulta_criancas, bg_color= '#ffffdc')
         self.pesquisar_entry.place(x=668, y=88)
 
         # Botão Voltar
         voltar_button = customtkinter.CTkButton(self.consulta_criancas, text="Voltar", width=100, height=40,
-                                                   corner_radius=15, command=self.voltar)
+                                                   corner_radius=15, bg_color= '#ffffdc',command=self.voltar)
         voltar_button.place(x=870, y=81)
 
         # Botão de Frequência
         frequencia_button = customtkinter.CTkButton(self.consulta_criancas, text="Frequência", width=80, height=40,
-                                                   corner_radius=15, command=self.salvar_frequencia)
+                                                   corner_radius=15,bg_color= '#ffffdc', command=self.salvar_frequencia)
         frequencia_button.place(x=250, y=85)
 
 
@@ -741,7 +748,7 @@ class App:
 
         self.consulta_voluntarios = customtkinter.CTkToplevel(self.root)
         self.consulta_voluntarios.title("Consulta de voluntários")
-        # self.consulta_criancas.iconbitmap("icone.ico")
+        self.consulta_voluntarios.iconbitmap("icone.ico")
         # self.consulta_criancas.state('zoomed')
         self.consulta_voluntarios.geometry("1000x600")
         self.consulta_voluntarios.resizable(False, False)
@@ -771,12 +778,12 @@ class App:
 
         # Botão Atualizar
         atualizar_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Atualizar", width=80, height=40,
-                                                   corner_radius=15,command=self.abrir_janela_editar_voluntario)
+                                                   corner_radius=15, bg_color= '#ffffdc', command=self.abrir_janela_editar_voluntario)
         atualizar_button.place(x=50, y=85)
 
         # Botão Excluir
         excluir_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Excluir", width=80, height=40,
-                                                   corner_radius=15, command=self.excluir_voluntario)
+                                                   corner_radius=15, bg_color= '#ffffdc', command=self.excluir_voluntario)
         excluir_button.place(x=150, y=85)
 
         # Carregar e redimensionar a imagem usando PIL
@@ -787,23 +794,23 @@ class App:
 
         # Criar o botão de pesquisa com a imagem
         pesquisar_button = customtkinter.CTkButton(self.consulta_voluntarios, text="", width=10, height=10,
-                                                   image=lupa,
+                                                   image=lupa, bg_color= '#ffffdc',
                                                    command=self.pesquisar_por_nome_voluntarios
                                                    )
         pesquisar_button.place(x=810, y=88)
 
         # Campo de entrada para inserir o nome a ser pesquisado
-        self.pesquisar_entry = customtkinter.CTkEntry(self.consulta_voluntarios)
+        self.pesquisar_entry = customtkinter.CTkEntry(self.consulta_voluntarios, bg_color= '#ffffdc')
         self.pesquisar_entry.place(x=668, y=88)
 
         # Botão Voltar
         voltar_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Voltar", width=100, height=40,
-                                                   corner_radius=15, command=self.voltar_voluntarios)
+                                                   corner_radius=15, bg_color= '#ffffdc',command=self.voltar_voluntarios)
         voltar_button.place(x=870, y=81)
 
         # Botão de Frequência
         frequencia_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Frequência", width=80, height=40,
-                                                   corner_radius=15, command=self.salvar_frequencia_voluntario)
+                                                   corner_radius=15,bg_color= '#ffffdc', command=self.salvar_frequencia_voluntario)
         frequencia_button.place(x=250, y=85)
 
 
