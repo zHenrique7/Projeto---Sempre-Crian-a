@@ -31,8 +31,31 @@ cursor = conexao.cursor()
 # termo_imagem VARCHAR(10)
 # )'''
 # )
+#
+
+# cursor.execute('''CREATE TABLE Voluntarios(
+# ID INT AUTO_INCREMENT PRIMARY KEY,
+# nome VARCHAR(50) NOT NULL,
+# telefone VARCHAR(11) NOT NULL,
+# email VARCHAR(50) NOT NULL,
+# profissao VARCHAR(50) NOT NULL,
+# projeto VARCHAR(100) NOT NULL,
+# participacao VARCHAR(10) NOT NULL,
+# frequencia INT DEFAULT 0
+# )'''
+# )
 
 
+# cursor.execute('''
+#     ALTER TABLE Crianças
+#     ADD COLUMN frequencia INT DEFAULT 0
+# ''')
+
+
+# cursor.execute('''
+#     ALTER TABLE Voluntarios
+#     ADD COLUMN profissao VARCHAR(50) NOT NULL
+# ''')
 
 
 
@@ -49,6 +72,7 @@ class App:
         self.consulta_criancas_tree = None  # Inicialização da Treeview para consulta de crianças
         self.cursor = conexao.cursor()
         self.tree = None  # Inicialize o atributo tree
+
 
     def tema(self):
         customtkinter.set_appearance_mode("light")
@@ -95,7 +119,8 @@ class App:
 
         consultar_voluntarios_button = customtkinter.CTkButton(master=cadastro_frame, text="Consultar Voluntários",
                                                                width=140, height=50, fg_color="#FFD700",
-                                                               text_color="#1e1e1e", corner_radius=10)
+                                                               text_color="#1e1e1e", corner_radius=10,
+                                                               command=self.abrir_janela_consulta_voluntarios)
         consultar_voluntarios_button.place(x=200, y=250)
         # FIM DOS BOTÕES -------------
 
@@ -117,6 +142,9 @@ class App:
         self.nova_janela.iconbitmap("icone.ico")
         self.nova_janela.geometry("800x600")
         self.nova_janela.resizable(False, False)
+        self.root.iconify()
+        # Definir a função a ser chamada quando a janela for fechada
+        self.nova_janela.protocol("WM_DELETE_WINDOW", self.fechar_janela_cadastro)
 
         # Configurar grid
         self.nova_janela.grid_columnconfigure(0, weight=1)
@@ -281,6 +309,7 @@ class App:
 
         ''', (nome, data_nascimento, telefone, cpf, rg, nome_resp, projeto, declaracao, vacinacao, termo))
         conexao.commit()
+        messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
 
         # Exibe os dados no console (apenas para verificação)
         print(f"Nome: {nome}")
@@ -294,7 +323,12 @@ class App:
         print(f"Vacinação em dia: {vacinacao}")
         print(f"Termo de imagem assinado: {termo}")
         # print(f"Certidão de Nascimento: {certidao}")
+    def fechar_janela_cadastro(self):
+        # Fechar a nova janela
+        self.nova_janela.destroy()
 
+        # Abrir novamente a janela principal
+        self.root.deiconify()
 
     # FIM DA JANELA DE CADASTRO DE CRIANÇAS --------------------------------
 
@@ -305,6 +339,8 @@ class App:
         self.janela_voluntario.iconbitmap("icone.ico")
         self.janela_voluntario.geometry("800x600")
         self.janela_voluntario.resizable(False, False)
+        self.root.iconify()
+        self.janela_voluntario.protocol("WM_DELETE_WINDOW", self.fechar_janela_voluntario)
 
         # Configurar grid
         self.janela_voluntario.grid_columnconfigure(0, weight=1)
@@ -375,24 +411,58 @@ class App:
 
         # Botão CONFIRMAR
         confirmar_button = customtkinter.CTkButton(self.janela_voluntario, text="CONFIRMAR", width=170, height=50,
-                                                   corner_radius=15, command=self.salvar_informacoes)
+                                                   corner_radius=15, command=self.salvar_informacoes_voluntarios)
         confirmar_button.place(x=515, y=420)
+
+    def salvar_informacoes_voluntarios(self):
+
+        nome = self.nome_entry.get()
+        telefone = self.telefone_entry.get()
+        email = self.email_entry.get()
+        profissao = self.profissao_entry.get()
+        projeto = self.projeto.get()
+        participacao = self.participacao_var.get()
+
+
+# Inserir os dados no banco de dados
+        self.cursor.execute('''
+        INSERT INTO Voluntarios (nome, telefone, email, profissao, projeto, participacao)
+        VALUES (%s, %s, %s, %s, %s, %s)
+
+        ''', (nome,telefone, email, profissao, projeto, participacao))
+        conexao.commit()
+        messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
+
+
+    def fechar_janela_voluntario(self):
+        # Fechar a nova janela
+        self.janela_voluntario.destroy()
+
+        # Abrir novamente a janela principal
+        self.root.deiconify()
 
         # JANELA DE CONSULTA DE CRIANÇAS -------------------------------------
 
     def abrir_janela_consulta_crianca(self):
+
+        # Verificar se a janela de consulta já existe e fechar se for o caso
+        if hasattr(self, 'consulta_criancas') and self.consulta_criancas.winfo_exists():
+            self.consulta_criancas.destroy()
+
         self.consulta_criancas = customtkinter.CTkToplevel(self.root)
         self.consulta_criancas.title("Consulta de crianças")
         # self.consulta_criancas.iconbitmap("icone.ico")
-        self.consulta_criancas.state('zoomed')
-        # self.consulta_criancas.geometry("800x600")
+        # self.consulta_criancas.state('zoomed')
+        self.consulta_criancas.geometry("1000x600")
         self.consulta_criancas.resizable(False, False)
+        self.root.iconify()
+        self.consulta_criancas.protocol("WM_DELETE_WINDOW", self.fechar_janela_consulta_criancas)
+
 
 
         # Configurar grid
         self.consulta_criancas.grid_columnconfigure(0, weight=1)
         self.consulta_criancas.grid_columnconfigure(1, weight=3)
-
 
 
         # Frame na direita -------------
@@ -407,29 +477,48 @@ class App:
         img = CTkImage(Image.open("icon.png"), size=(230, 150))
         self.label_img = customtkinter.CTkLabel(self.consulta_criancas, image=img, text="", bg_color="#ffffdc")
         self.label_img.image = img
-        self.label_img.place(x=800, y=5)
+        self.label_img.place(x=400, y=5)
+
+
 
         # Botão Atualizar
-        atualizar_button = customtkinter.CTkButton(self.consulta_criancas, text="Atualizar", width=130, height=40,
-                                                   corner_radius=15)
-        atualizar_button.place(x=350, y=80)
-
+        atualizar_button = customtkinter.CTkButton(self.consulta_criancas, text="Atualizar", width=80, height=40,
+                                                   corner_radius=15, command=self.abrir_janela_editar_crianca)
+        atualizar_button.place(x=50, y=85)
 
         # Botão Excluir
-        excluir_button = customtkinter.CTkButton(self.consulta_criancas, text="Excluir", width=130, height=40,
+        excluir_button = customtkinter.CTkButton(self.consulta_criancas, text="Excluir", width=80, height=40,
                                                    corner_radius=15, command=self.excluir_dados_selecionados)
-        excluir_button.place(x=500, y=80)
+        excluir_button.place(x=150, y=85)
 
+        # Carregar e redimensionar a imagem usando PIL
+        lupa_image = Image.open("lupa.png")
+        lupa_image = lupa_image.resize((lupa_image.width // 2, lupa_image.height // 2))
 
-        # Botão Pesquisar
-        pesquisar_button = customtkinter.CTkButton(self.consulta_criancas, text="Pesquisar", width=130, height=40,
-                                                   corner_radius=15)
-        pesquisar_button.place(x=1200, y=80)
+        lupa = customtkinter.CTkImage(lupa_image)
+
+        # Criar o botão de pesquisa com a imagem
+        pesquisar_button = customtkinter.CTkButton(self.consulta_criancas, text="", width=10, height=10,
+                                                   image=lupa,
+                                                   command=self.pesquisar_por_nome,
+                                                   )
+        pesquisar_button.place(x=810, y=88)
+
+        # Campo de entrada para inserir o nome a ser pesquisado
+        self.pesquisar_entry = customtkinter.CTkEntry(self.consulta_criancas)
+        self.pesquisar_entry.place(x=668, y=88)
 
         # Botão Voltar
-        voltar_button = customtkinter.CTkButton(self.consulta_criancas, text="Voltar", width=130, height=40,
-                                                   corner_radius=15)
-        voltar_button.place(x=1350, y=80)
+        voltar_button = customtkinter.CTkButton(self.consulta_criancas, text="Voltar", width=100, height=40,
+                                                   corner_radius=15, command=self.voltar)
+        voltar_button.place(x=870, y=81)
+
+        # Botão de Frequência
+        frequencia_button = customtkinter.CTkButton(self.consulta_criancas, text="Frequência", width=80, height=40,
+                                                   corner_radius=15, command=self.salvar_frequencia)
+        frequencia_button.place(x=250, y=85)
+
+
 
         # Frame para Treeview e Scrollbars
         frame_tree = customtkinter.CTkFrame(self.consulta_criancas)
@@ -451,7 +540,7 @@ class App:
         # Criar a treeview para exibir os dados
         self.tree = ttk.Treeview(frame_tree, columns=(
             "ID","Nome", "Data de Nascimento", "Telefone", "CPF responsável", "RG responsável", "Nome responsável",
-            "Projeto", "Declaração escolar", "Vacinação", "Termo de imagem"), show="headings", style="Treeview")
+            "Projeto", "Declaração escolar", "Vacinação", "Termo de imagem", "Frequência"), show="headings", style="Treeview")
 
         self.tree.heading("ID", text="ID")
         self.tree.heading("Nome", text="Nome")
@@ -464,6 +553,7 @@ class App:
         self.tree.heading("Declaração escolar", text="Declaração escolar")
         self.tree.heading("Vacinação", text="Vacinação")
         self.tree.heading("Termo de imagem", text="Termo de imagem")
+        self.tree.heading("Frequência", text="Frequência")
 
         # Ajustar a largura das colunas automaticamente
         for col in self.tree['columns']:
@@ -495,17 +585,435 @@ class App:
     def excluir_dados_selecionados(self):
         # Obter o item selecionado na Treeview
         item_selecionado = self.tree.selection()
-        if item_selecionado:
-            # Obter o ID do item selecionado
-            id_selecionado = self.tree.item(item_selecionado, "values")[0]
-            # Excluir o item do banco de dados
+        if not item_selecionado:
+            messagebox.showwarning("Nenhum item selecionado", "Por favor, selecione uma criança para deletar.",
+                                   parent=self.consulta_criancas)
+            return
+        # Obter o ID da criança selecionada
+        id_selecionado = self.tree.item(item_selecionado, "values")[0]
+        # Confirmar a exclusão
+        resposta = messagebox.askyesno("Confirmar Exclusão", "Tem certeza que deseja deletar esta criança?",
+                                       parent=self.consulta_criancas)
+        if resposta:
+            # Deletar o registro do banco de dados
             self.cursor.execute("DELETE FROM Crianças WHERE id = %s", (id_selecionado,))
             conexao.commit()
-            # Excluir o item da Treeview
+
+            # Remover o item da Treeview
             self.tree.delete(item_selecionado)
-            messagebox.showinfo("Dados Excluídos", "Os dados foram excluídos com sucesso.", parent=None)
-        else:
-            messagebox.showwarning("Nenhum item selecionado", "Por favor, selecione um item para excluir.", parent=None)
+            messagebox.showinfo("Sucesso", "A criança foi deletada com sucesso.")
+
+    def abrir_janela_editar_crianca(self):
+        # Obter o item selecionado na Treeview
+        item_selecionado = self.tree.selection()
+        if not item_selecionado:
+            messagebox.showwarning("Nenhum item selecionado", "Por favor, selecione uma criança para editar.",
+                                   parent=self.consulta_criancas)
+            return
+
+        # Obter os dados da criança selecionada
+        id_selecionado = self.tree.item(item_selecionado, "values")[0]
+        self.cursor.execute("SELECT * FROM Crianças WHERE id = %s", (id_selecionado,))
+        dados_crianca = self.cursor.fetchone()
+
+        if not dados_crianca:
+            messagebox.showerror("Erro", "Os dados da criança não foram encontrados.", parent=self.consulta_criancas)
+            return
+
+        # Abrir a janela de edição com abas
+        self.janela_edicao = customtkinter.CTkToplevel(self.root)
+        self.janela_edicao.title("Editar Criança")
+        self.janela_edicao.iconbitmap("icone.ico")
+        self.janela_edicao.geometry("800x600")
+        self.janela_edicao.resizable(False, False)
+
+        # Minimizar a janela principal
+        self.root.iconify()
+
+        # Nome
+        nome_label = customtkinter.CTkLabel(self.janela_edicao, text="Nome:", bg_color="#ffffdc", text_color='black')
+        nome_label.place(x=495, y=10)
+        self.nome_entry = customtkinter.CTkEntry(self.janela_edicao)
+        self.nome_entry.place(x=560, y=10, )
+
+        # Botão SALVAR EDIÇÕES
+        salvar_button = customtkinter.CTkButton(self.janela_edicao, text="SALVAR", width=170, height=50,
+                                                corner_radius=15, command=self.salvar_edicao)
+        salvar_button.place(x=315, y=200)
+
+    def salvar_edicao(self):
+        # Coleta os dados dos campos de entrada
+        nome = self.nome_entry.get()
+
+        # Obter o ID da criança selecionada
+        item_selecionado = self.tree.selection()
+        id_selecionado = self.tree.item(item_selecionado, "values")[0]
+
+        # Atualizar os dados no banco de dados
+        self.cursor.execute('''
+               UPDATE Crianças
+               SET nome = %s
+               WHERE id = %s
+               ''', (nome, id_selecionado))
+        conexao.commit()
+        messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
+
+        # Fechar a janela de edição
+        self.janela_edicao.destroy()
+
+        self.consulta_criancas.destroy()
+
+        # Abrir a janela de edição novamente para reiniciar
+        self.abrir_janela_consulta_crianca()
+
+    def salvar_frequencia(self):
+        # Obter o item selecionado na Treeview
+        item_selecionado = self.tree.selection()
+        if not item_selecionado:
+            messagebox.showwarning("Nenhum item selecionado", "Por favor, selecione uma criança para atualizar a frequência.",
+                                   parent=self.consulta_criancas)
+            return
+
+        # Obter os dados da criança selecionada
+        id_selecionado = self.tree.item(item_selecionado, "values")[0]
+        self.cursor.execute("SELECT frequencia FROM Crianças WHERE id = %s", (id_selecionado,))
+        frequencia_atual = self.cursor.fetchone()[0]
+
+        # Caixa de diálogo de confirmação
+        resposta = messagebox.askyesno("Confirmação", "Marcar presença para esta criança?",
+                                       parent=self.consulta_criancas)
+
+        if resposta:  # Se o usuário confirmou
+            nova_frequencia = frequencia_atual + 1
+        else:  # Se o usuário cancelou
+            nova_frequencia = frequencia_atual
+
+        # Atualizar a frequência no banco de dados
+        self.cursor.execute("UPDATE Crianças SET frequencia = %s WHERE id = %s", (nova_frequencia, id_selecionado))
+        conexao.commit()
+
+        messagebox.showinfo("Frequência atualizada", "A frequência foi atualizada com sucesso.")
+
+        #Fechar a janela de edição
+        self.consulta_criancas.destroy()
+        # Abrir a janela de edição novamente para reiniciar
+        self.abrir_janela_consulta_crianca()
+
+    def voltar(self):
+        # Fechar a janela de consulta e restaurar a janela principal
+        self.consulta_criancas.destroy()
+        self.root.deiconify()
+
+    def pesquisar_por_nome(self):
+        # Obter o nome digitado pelo usuário na entrada de pesquisa
+        nome_pesquisado = self.pesquisar_entry.get()
+
+        # Limpar a treeview antes de exibir os resultados da pesquisa
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        # Consultar o banco de dados para obter crianças cujos nomes correspondem à pesquisa
+        self.cursor.execute("SELECT * FROM Crianças WHERE nome LIKE %s", ('%' + nome_pesquisado + '%',))
+        rows = self.cursor.fetchall()
+        if not rows:
+            messagebox.showinfo("Nenhum resultado", "Nenhuma criança encontrada com esse nome.")
+
+        # Adicionar os resultados da pesquisa à treeview
+        for row in rows:
+            self.tree.insert("", "end", values=row)
+
+    def fechar_janela_consulta_criancas(self):
+        # Fechar a nova janela
+        self.consulta_criancas.destroy()
+
+        # Abrir novamente a janela principal
+        self.root.deiconify()
+
+
+
+# JANELA DE CONSULTA DE VOLUNTARIOS ----------------------------------
+
+    def abrir_janela_consulta_voluntarios(self):
+
+        # Verificar se a janela de consulta já existe e fechar se for o caso
+        if hasattr(self, 'consulta voluntarios') and self.consulta_voluntarios.winfo_exists():
+            self.consulta_criancas.destroy()
+
+        self.consulta_voluntarios = customtkinter.CTkToplevel(self.root)
+        self.consulta_voluntarios.title("Consulta de voluntários")
+        # self.consulta_criancas.iconbitmap("icone.ico")
+        # self.consulta_criancas.state('zoomed')
+        self.consulta_voluntarios.geometry("1000x600")
+        self.consulta_voluntarios.resizable(False, False)
+        self.root.iconify()
+        self.consulta_voluntarios.protocol("WM_DELETE_WINDOW", self.fechar_janela_consulta_voluntarios)
+
+
+
+        # Configurar grid
+        self.consulta_voluntarios.grid_columnconfigure(0, weight=1)
+        self.consulta_voluntarios.grid_columnconfigure(1, weight=3)
+
+
+        # Frame na direita -------------
+        consulta_frame = customtkinter.CTkFrame(self.consulta_voluntarios, width=1980, height=160,
+                                                fg_color="#ffffdc")
+        consulta_frame.pack(side=TOP, padx=0, pady=0)
+
+        label = customtkinter.CTkLabel(consulta_frame, text='',
+                                       font=('Roboto', 20, 'bold'), text_color='black')
+        label.place(x=900, y=50)
+
+        img = CTkImage(Image.open("icon.png"), size=(230, 150))
+        self.label_img = customtkinter.CTkLabel(self.consulta_voluntarios, image=img, text="", bg_color="#ffffdc")
+        self.label_img.image = img
+        self.label_img.place(x=400, y=5)
+
+        # Botão Atualizar
+        atualizar_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Atualizar", width=80, height=40,
+                                                   corner_radius=15,command=self.abrir_janela_editar_voluntario)
+        atualizar_button.place(x=50, y=85)
+
+        # Botão Excluir
+        excluir_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Excluir", width=80, height=40,
+                                                   corner_radius=15, command=self.excluir_voluntario)
+        excluir_button.place(x=150, y=85)
+
+        # Carregar e redimensionar a imagem usando PIL
+        lupa_image = Image.open("lupa.png")
+        lupa_image = lupa_image.resize((lupa_image.width // 2, lupa_image.height // 2))
+
+        lupa = customtkinter.CTkImage(lupa_image)
+
+        # Criar o botão de pesquisa com a imagem
+        pesquisar_button = customtkinter.CTkButton(self.consulta_voluntarios, text="", width=10, height=10,
+                                                   image=lupa,
+                                                   command=self.pesquisar_por_nome_voluntarios
+                                                   )
+        pesquisar_button.place(x=810, y=88)
+
+        # Campo de entrada para inserir o nome a ser pesquisado
+        self.pesquisar_entry = customtkinter.CTkEntry(self.consulta_voluntarios)
+        self.pesquisar_entry.place(x=668, y=88)
+
+        # Botão Voltar
+        voltar_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Voltar", width=100, height=40,
+                                                   corner_radius=15, command=self.voltar_voluntarios)
+        voltar_button.place(x=870, y=81)
+
+        # Botão de Frequência
+        frequencia_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Frequência", width=80, height=40,
+                                                   corner_radius=15, command=self.salvar_frequencia_voluntario)
+        frequencia_button.place(x=250, y=85)
+
+
+
+        # Frame para Treeview e Scrollbars
+        frame_tree = customtkinter.CTkFrame(self.consulta_voluntarios)
+        frame_tree.pack(side="bottom", pady=(0,0), fill="both", expand=True)
+
+        # Criar um estilo personalizado
+        style = ttk.Style()
+        style.theme_use("default")  # Escolha de um tema moderno
+
+        # Definir cores e fontes
+        style.configure("Treeview",
+                        background="white",
+                        fieldbackground="#E1E1E1",
+                        foreground="black",
+                        font=("Helvetica", 10))
+        style.map("Treeview", background=[('selected', '#0078D7')])
+
+
+        # Criar a treeview para exibir os dados
+        self.tree = ttk.Treeview(frame_tree, columns=(
+            "ID","Nome","Telefone","E-mail","Profissão",
+             "Projeto","Participação","Frequência"), show="headings", style="Treeview")
+
+        self.tree.heading("ID", text="ID")
+        self.tree.heading("Nome", text="Nome")
+        self.tree.heading("Telefone", text="Telefone")
+        self.tree.heading("E-mail", text="E-mail")
+        self.tree.heading("Profissão", text="Profissão")
+        self.tree.heading("Projeto", text="Projeto")
+        self.tree.heading("Participação", text="Participação")
+        self.tree.heading("Frequência", text="Frequência")
+
+        # Ajustar a largura das colunas automaticamente
+        for col in self.tree['columns']:
+            self.tree.column(col, width=175, anchor='center', stretch=customtkinter.YES)
+            # Permitir que o usuário redimensione as colunas
+            self.tree.bind('<Configure>', self.on_resize)
+
+        # Adicionar barras de rolagem
+        scrollbar_vertical = ttk.Scrollbar(frame_tree, orient="vertical", command=self.tree.yview)
+        scrollbar_horizontal = ttk.Scrollbar(frame_tree, orient="horizontal", command=self.tree.xview)
+
+        self.tree.configure(yscroll=scrollbar_vertical.set, xscroll=scrollbar_horizontal.set)
+
+        # Empacotar treeview e scrollbars
+        self.tree.grid(row=0, column=0, sticky='nsew')
+        scrollbar_vertical.grid(row=0, column=1, sticky='ns')
+        scrollbar_horizontal.grid(row=1, column=0, sticky='ew')
+
+        frame_tree.grid_rowconfigure(0, weight=1)
+        frame_tree.grid_columnconfigure(0, weight=1)
+
+
+        # Buscar dados do banco de dados e adicionar ao Treeview
+        self.cursor.execute('SELECT * FROM Voluntarios')
+        rows = self.cursor.fetchall()
+        for row in rows:
+            self.tree.insert("", "end", values=row)
+
+    def excluir_voluntario(self):
+        # Obter o item selecionado na Treeview
+        item_selecionado = self.tree.selection()
+        if not item_selecionado:
+            messagebox.showwarning("Nenhum item selecionado", "Por favor, selecione um voluntário para deletar.",
+                                   parent=self.consulta_voluntarios)
+            return
+        # Obter o ID da criança selecionada
+        id_selecionado = self.tree.item(item_selecionado, "values")[0]
+        # Confirmar a exclusão
+        resposta = messagebox.askyesno("Confirmar Exclusão", "Tem certeza que deseja deletar este voluntário?",
+                                       parent=self.consulta_voluntarios)
+        if resposta:
+            # Deletar o registro do banco de dados
+            self.cursor.execute("DELETE FROM Voluntarios WHERE id = %s", (id_selecionado,))
+            conexao.commit()
+
+            # Remover o item da Treeview
+            self.tree.delete(item_selecionado)
+            messagebox.showinfo("Sucesso", "O voluntário foi deletado com sucesso.")
+
+
+    def abrir_janela_editar_voluntario(self):
+        # Obter o item selecionado na Treeview
+        item_selecionado = self.tree.selection()
+        if not item_selecionado:
+            messagebox.showwarning("Nenhum item selecionado", "Por favor, selecione um voluntário para editar.",
+                                       parent=self.consulta_voluntarios)
+            return
+
+        # Obter os dados da criança selecionada
+        id_selecionado = self.tree.item(item_selecionado, "values")[0]
+        self.cursor.execute("SELECT * FROM Voluntarios WHERE id = %s", (id_selecionado,))
+        dados_voluntario = self.cursor.fetchone()
+
+        if not dados_voluntario:
+            messagebox.showerror("Erro", "Os dados do voluntário não foram encontrados.", parent=self.consulta_voluntarios)
+            return
+
+        # Abrir a janela de edição com abas
+        self.janela_editar_voluntario = customtkinter.CTkToplevel(self.root)
+        self.janela_editar_voluntario.title("Editar Voluntário")
+        self.janela_editar_voluntario.iconbitmap("icone.ico")
+        self.janela_editar_voluntario.geometry("800x600")
+        self.janela_editar_voluntario.resizable(False, False)
+
+        # Minimizar a janela principal
+        self.root.iconify()
+
+        # Nome
+        nome_label = customtkinter.CTkLabel(self.janela_editar_voluntario, text="Nome:", bg_color="#ffffdc", text_color='black')
+        nome_label.place(x=495, y=10)
+        self.nome_entry = customtkinter.CTkEntry(self.janela_editar_voluntario)
+        self.nome_entry.place(x=560, y=10, )
+
+        # Botão SALVAR EDIÇÕES
+        salvar_button = customtkinter.CTkButton(self.janela_editar_voluntario, text="SALVAR", width=170, height=50,
+                                                    corner_radius=15, command=self.salvar_edicao)
+        salvar_button.place(x=315, y=200)
+
+    def salvar_edicao(self):
+        # Coleta os dados dos campos de entrada
+        nome = self.nome_entry.get()
+
+        # Obter o ID da criança selecionada
+        item_selecionado = self.tree.selection()
+        id_selecionado = self.tree.item(item_selecionado, "values")[0]
+
+        # Atualizar os dados no banco de dados
+        self.cursor.execute('''
+                UPDATE Voluntarios
+                SET nome = %s
+                WHERE id = %s
+        ''', (nome, id_selecionado))
+        conexao.commit()
+        messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
+
+        # Fechar a janela de edição
+        self.janela_editar_voluntario.destroy()
+
+        self.consulta_voluntarios.destroy()
+
+        # Abrir a janela de edição novamente para reiniciar
+        self.abrir_janela_consulta_voluntarios()
+
+    def salvar_frequencia_voluntario(self):
+        # Obter o item selecionado na Treeview
+        item_selecionado = self.tree.selection()
+        if not item_selecionado:
+            messagebox.showwarning("Nenhum item selecionado", "Por favor, selecione um voluntário para atualizar a frequência.",
+                                   parent=self.consulta_voluntarios)
+            return
+
+        # Obter os dados da criança selecionada
+        id_selecionado = self.tree.item(item_selecionado, "values")[0]
+        self.cursor.execute("SELECT frequencia FROM Voluntarios WHERE id = %s", (id_selecionado,))
+        frequencia_atual = self.cursor.fetchone()[0]
+
+        # Caixa de diálogo de confirmação
+        resposta = messagebox.askyesno("Confirmação", "Marcar presença para este voluntário?",
+                                       parent=self.consulta_voluntarios)
+
+        if resposta:  # Se o usuário confirmou
+            nova_frequencia = frequencia_atual + 1
+        else:  # Se o usuário cancelou
+            nova_frequencia = frequencia_atual
+
+        # Atualizar a frequência no banco de dados
+        self.cursor.execute("UPDATE Voluntarios SET frequencia = %s WHERE id = %s", (nova_frequencia, id_selecionado))
+        conexao.commit()
+
+        messagebox.showinfo("Frequência atualizada", "A frequência foi atualizada com sucesso.")
+
+        # Fechar a janela de edição
+        self.consulta_voluntarios.destroy()
+        # Abrir a janela de edição novamente para reiniciar
+        self.abrir_janela_consulta_voluntarios()
+
+    def voltar_voluntarios(self):
+        # Fechar a janela de consulta e restaurar a janela principal
+        self.consulta_voluntarios.destroy()
+        self.root.deiconify()
+
+    def pesquisar_por_nome_voluntarios(self):
+        # Obter o nome digitado pelo usuário na entrada de pesquisa
+        nome_pesquisado = self.pesquisar_entry.get()
+
+        # Limpar a treeview antes de exibir os resultados da pesquisa
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        # Consultar o banco de dados para obter crianças cujos nomes correspondem à pesquisa
+        self.cursor.execute("SELECT * FROM Voluntarios WHERE nome LIKE %s", ('%' + nome_pesquisado + '%',))
+        rows = self.cursor.fetchall()
+
+        if not rows:
+            messagebox.showinfo("Nenhum resultado", "Nenhum voluntário encontrado com esse nome.")
+
+        # Adicionar os resultados da pesquisa à treeview
+        for row in rows:
+            self.tree.insert("", "end", values=row)
+
+    def fechar_janela_consulta_voluntarios(self):
+        # Fechar a nova janela
+        self.consulta_voluntarios.destroy()
+
+        # Abrir novamente a janela principal
+        self.root.deiconify()
 
 
 
