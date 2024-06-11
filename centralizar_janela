@@ -1,0 +1,11 @@
+    def centralizar_janela(self, largura, altura, janela):
+        # Obter as dimensões da tela
+        largura_tela = self.root.winfo_screenwidth()
+        altura_tela = self.root.winfo_screenheight()
+
+        # Calcular as coordenadas para centralizar a janela
+        x = (largura_tela - largura) // 2
+        y = (altura_tela - altura) // 2
+
+        # Definir as dimensões e coordenadas da janela
+        janela.geometry('%dx%d+%d+%d' % (largura, altura, x, y))
