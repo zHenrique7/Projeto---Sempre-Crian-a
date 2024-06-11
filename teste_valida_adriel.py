@@ -81,3 +81,12 @@ def valida_projeto(self,projeto):
         messagebox.showwarning('Campo vazio','Campo projeto não pode ser vazio')
         return False
     return True
+
+def valida_endereco(self,endereco):
+    if len(endereco) > 100:
+        messagebox.showwarning('Passou do total', 'Máximo de 100 caracteres')
+        return False
+    elif endereco == '':
+        messagebox.showwarning('Campo vazio', 'Campo endereco não pode ser vazio')
+        return False
+    return True
