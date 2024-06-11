@@ -96,3 +96,16 @@ def valida_radio_button(self,teste):
         messagebox.showwarning('Campo vazio','Escolha uma das opções')
         return False
     return True
+
+def valida_email(self,email):
+    if email=='':
+        messagebox.showwarning('Campo vazio','O campo email não pode ser vazio')
+        return False
+    teste=email.find('@')
+    if teste==-1:
+        messagebox.showwarning('Email inválido','Digite um email válido no formato xxxxxxx@xxxxx.xxx')
+        return False
+    if len(email)>50:
+        messagebox.showwarning('Passou do total','Email muito grande')
+        return False
+    return True
