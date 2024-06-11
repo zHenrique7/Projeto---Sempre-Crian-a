@@ -72,3 +72,12 @@ def valida_rg(self,rg):
             messagebox.showwarning('RG inválido','Digite um RG válido no modelo: 00.000.000-0')
             return False
     return True
+
+def valida_projeto(self,projeto):
+    if len(projeto)>100:
+        messagebox.showwarning('Passou do total','Máximo de 100 caracteres')
+        return False
+    elif projeto=='':
+        messagebox.showwarning('Campo vazio','Campo projeto não pode ser vazio')
+        return False
+    return True
