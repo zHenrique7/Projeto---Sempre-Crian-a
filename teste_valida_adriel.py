@@ -90,3 +90,9 @@ def valida_endereco(self,endereco):
         messagebox.showwarning('Campo vazio', 'Campo endereco não pode ser vazio')
         return False
     return True
+
+def valida_radio_button(self,teste):
+    if teste=='':
+        messagebox.showwarning('Campo vazio','Escolha uma das opções')
+        return False
+    return True
