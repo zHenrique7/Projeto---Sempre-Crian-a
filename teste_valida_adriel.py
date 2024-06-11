@@ -49,10 +49,26 @@ def valida_cpf(self,cpf):
         elif(i==11 and cpf[i]!='-'):
             messagebox.showwarning('CPF inválido', 'Digite um cpf no modelo 123.123.123-12')
             return False
-        elif(i!=3 and i!=7 and i!=11):
+        elif(i!=3 and i!=7 and i!=11 and not(cpf[i].isdigit())):
             messagebox.showwarning('CPF inválido', 'Digite um cpf no modelo 123.123.123-12')
             return False
-        elif(not(cpf[i].isdigit())):
-            messagebox.showwarning('CPF inválido', 'Digite um cpf no modelo 123.123.123-12')
+    return True
+
+def valida_rg(self,rg):
+    if len(rg)!=12:
+        messagebox.showwarning('RG inválido','Digite um RG válido no modelo: 00.000.000-0')
+        return False
+    for i in range(len(rg)):
+        if(i==2 and rg[i]!='.'):
+            messagebox.showwarning('RG inválido','Digite um RG válido no modelo: 00.000.000-0')
+            return False
+        elif(i==6 and rg[i]!='.'):
+            messagebox.showwarning('RG inválido','Digite um RG válido no modelo: 00.000.000-0')
+            return False
+        elif(i==10 and rg[i]!='-'):
+            messagebox.showwarning('RG inválido','Digite um RG válido no modelo: 00.000.000-0')
+            return False
+        elif(i!=2 and i!=6 and i!=10 and not(rg[i].isdigit())):
+            messagebox.showwarning('RG inválido','Digite um RG válido no modelo: 00.000.000-0')
             return False
     return True
