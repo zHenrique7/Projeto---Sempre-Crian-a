@@ -78,22 +78,35 @@ class App:
         self.consulta_criancas_tree = None  # Inicialização da Treeview para consulta de crianças
         self.cursor = conexao.cursor()
         self.tree = None  # Inicialize o atributo tree
-        self.root.iconbitmap("icone.ico")
+        self.root.iconbitmap("icon.ico")
 
         # ICONE DO APLICATIVO --------
         myappid = 'mycompany.myproduct.subproduct.version'
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-        root.iconbitmap('icone.ico')
+        root.iconbitmap('icon.ico')
     def tema(self):
         customtkinter.set_appearance_mode("light")
         customtkinter.set_default_color_theme("dark-blue")
+
+    def centralizar_janela(self, largura, altura, janela):
+        # Obter as dimensões da tela
+        largura_tela = self.root.winfo_screenwidth()
+        altura_tela = self.root.winfo_screenheight()
+
+        # Calcular as coordenadas para centralizar a janela
+        x = (largura_tela - largura) // 2
+        y = (altura_tela - altura) // 2
+
+        # Definir as dimensões e coordenadas da janela
+        janela.geometry('%dx%d+%d+%d' % (largura, altura, x, y))
 
     def create_widgets(self):
         self.root.geometry("700x500")
         self.root.title("Sempre criança")
         self.root.resizable(False, False)
+        self.centralizar_janela(700, 500, self.root)
 
-        img = CTkImage(Image.open("icon.png"), size=(310, 230))
+        img = CTkImage(Image.open("icon.ico"), size=(310, 230))
         self.label_img = customtkinter.CTkLabel(master=self.root, image=img, text="")
         self.label_img.image = img
         self.label_img.place(x=5, y=100)
@@ -148,9 +161,10 @@ class App:
     def abrir_janela_cadastro_criancas(self):
         self.nova_janela = customtkinter.CTkToplevel(self.root)
         self.nova_janela.title("Cadastro de Crianças")
-        self.nova_janela.iconbitmap("icone.ico")
+        self.nova_janela.iconbitmap("icon.ico")
         self.nova_janela.geometry("800x600")
         self.nova_janela.resizable(False, False)
+        self.centralizar_janela(800, 600, self.nova_janela)
         self.root.iconify()
         # Definir a função a ser chamada quando a janela for fechada
         self.nova_janela.protocol("WM_DELETE_WINDOW", self.fechar_janela_cadastro)
@@ -167,7 +181,7 @@ class App:
         label = customtkinter.CTkLabel(crianca_frame, text='', font=('Roboto', 20, 'bold'), text_color='black')
         label.place(x=35, y=50)
 
-        img = CTkImage(Image.open("icon.png"), size=(310, 230))
+        img = CTkImage(Image.open("icone.png"), size=(310, 230))
         self.label_img = customtkinter.CTkLabel(self.nova_janela, image=img, text="")
         self.label_img.image = img
         self.label_img.place(x=5, y=100)
@@ -450,6 +464,8 @@ class App:
         # Fechar a nova janela
         self.nova_janela.destroy()
 
+        self.centralizar_janela(700, 500, self.root)
+
         # Abrir novamente a janela principal
         self.root.deiconify()
 
@@ -459,9 +475,10 @@ class App:
     def abrir_janela_cadastro_voluntarios(self):
         self.janela_voluntario = customtkinter.CTkToplevel(self.root)
         self.janela_voluntario.title("Cadastro de Voluntários")
-        self.janela_voluntario.iconbitmap("icone.ico")
+        self.janela_voluntario.iconbitmap("icon.ico")
         self.janela_voluntario.geometry("800x600")
         self.janela_voluntario.resizable(False, False)
+        self.centralizar_janela(800, 600, self.janela_voluntario)
         self.root.iconify()
         self.janela_voluntario.protocol("WM_DELETE_WINDOW", self.fechar_janela_voluntario)
 
@@ -477,7 +494,7 @@ class App:
         label = customtkinter.CTkLabel(crianca_frame, text='', font=('Roboto', 20, 'bold'), text_color='black')
         label.place(x=35, y=50)
 
-        img = CTkImage(Image.open("icon.png"), size=(310, 230))
+        img = CTkImage(Image.open("icone.png"), size=(310, 230))
         self.label_img = customtkinter.CTkLabel(self.janela_voluntario, image=img, text="")
         self.label_img.image = img
         self.label_img.place(x=5, y=100)
@@ -591,6 +608,8 @@ class App:
         # Fechar a nova janela
         self.janela_voluntario.destroy()
 
+        self.centralizar_janela(700, 500, self.root)
+
         # Abrir novamente a janela principal
         self.root.deiconify()
 
@@ -604,10 +623,11 @@ class App:
 
         self.consulta_criancas = customtkinter.CTkToplevel(self.root)
         self.consulta_criancas.title("Consulta de crianças")
-        # self.consulta_criancas.iconbitmap("icone.ico")
+        # self.consulta_criancas.iconbitmap("icon.ico")
         # self.consulta_criancas.state('zoomed')
         self.consulta_criancas.geometry("1000x600")
         self.consulta_criancas.resizable(False, False)
+        self.centralizar_janela(1000, 600, self.consulta_criancas)
         self.root.iconify()
         self.consulta_criancas.protocol("WM_DELETE_WINDOW", self.fechar_janela_consulta_criancas)
 
@@ -627,7 +647,7 @@ class App:
                                        font=('Roboto', 20, 'bold'), text_color='black')
         label.place(x=900, y=50)
 
-        img = CTkImage(Image.open("icon.png"), size=(230, 150))
+        img = CTkImage(Image.open("icone.png"), size=(230, 150))
         self.label_img = customtkinter.CTkLabel(self.consulta_criancas, image=img, text="", bg_color="#ffffdc")
         self.label_img.image = img
         self.label_img.place(x=400, y=5)
@@ -778,9 +798,10 @@ class App:
         # Abrir a janela de edição com abas
         self.janela_edicao = customtkinter.CTkToplevel(self.root)
         self.janela_edicao.title("Editar Criança")
-        self.janela_edicao.iconbitmap("icone.ico")
+        self.janela_edicao.iconbitmap("icon.ico")
         self.janela_edicao.geometry("800x600")
         self.janela_edicao.resizable(False, False)
+        self.centralizar_janela(800, 600, self.janela_edicao)
 
         # Minimizar a janela principal
         self.root.iconify()
@@ -883,6 +904,8 @@ class App:
         # Fechar a nova janela
         self.consulta_criancas.destroy()
 
+        self.centralizar_janela(700, 500, self.root)
+
         # Abrir novamente a janela principal
         self.root.deiconify()
 
@@ -898,10 +921,11 @@ class App:
 
         self.consulta_voluntarios = customtkinter.CTkToplevel(self.root)
         self.consulta_voluntarios.title("Consulta de voluntários")
-        self.consulta_voluntarios.iconbitmap("icone.ico")
+        self.consulta_voluntarios.iconbitmap("icon.ico")
         # self.consulta_criancas.state('zoomed')
         self.consulta_voluntarios.geometry("1000x600")
         self.consulta_voluntarios.resizable(False, False)
+        self.centralizar_janela(1000, 600, self.consulta_voluntarios)
         self.root.iconify()
         self.consulta_voluntarios.protocol("WM_DELETE_WINDOW", self.fechar_janela_consulta_voluntarios)
 
@@ -921,7 +945,7 @@ class App:
                                        font=('Roboto', 20, 'bold'), text_color='black')
         label.place(x=900, y=50)
 
-        img = CTkImage(Image.open("icon.png"), size=(230, 150))
+        img = CTkImage(Image.open("icone.png"), size=(230, 150))
         self.label_img = customtkinter.CTkLabel(self.consulta_voluntarios, image=img, text="", bg_color="#ffffdc")
         self.label_img.image = img
         self.label_img.place(x=400, y=5)
@@ -1065,9 +1089,10 @@ class App:
         # Abrir a janela de edição com abas
         self.janela_editar_voluntario = customtkinter.CTkToplevel(self.root)
         self.janela_editar_voluntario.title("Editar Voluntário")
-        self.janela_editar_voluntario.iconbitmap("icone.ico")
+        self.janela_editar_voluntario.iconbitmap("icon.ico")
         self.janela_editar_voluntario.geometry("800x600")
         self.janela_editar_voluntario.resizable(False, False)
+        self.centralizar_janela(800, 600, self.janela_editar_voluntario)
 
         # Minimizar a janela principal
         self.root.iconify()
@@ -1169,6 +1194,8 @@ class App:
     def fechar_janela_consulta_voluntarios(self):
         # Fechar a nova janela
         self.consulta_voluntarios.destroy()
+
+        self.centralizar_janela(700, 500, self.root)
 
         # Abrir novamente a janela principal
         self.root.deiconify()
