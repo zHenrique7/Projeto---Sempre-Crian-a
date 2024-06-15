@@ -7,7 +7,7 @@ from PIL import Image, ImageTk  # Importação correta do Pillow
 from tkcalendar import Calendar, DateEntry
 import mysql.connector
 import ctypes
-from datetime import datetime
+import datetime
 
 
 conexao = mysql.connector.connect(
@@ -23,18 +23,26 @@ cursor = conexao.cursor()
 # id INT AUTO_INCREMENT PRIMARY KEY,
 # nome VARCHAR(50) NOT NULL,
 # data_nascimento DATE NOT NULL,
+# idade INT NOT NULL,
 # telefone VARCHAR(11) NOT NULL,
+# endereco VARCHAR(100) NOT NULL,
 # cpf_responsavel VARCHAR(14) NOT NULL,
-# rg_resp VARCHAR(9) NOT NULL,
+# rg_resp VARCHAR(12) NOT NULL,
 # nome_resp VARCHAR(50) NOT NULL,
-# projeto VARCHAR(20) NOT NULL,
+# projeto VARCHAR(100) NOT NULL,
 # declaracao_escolar VARCHAR(10),
 # vacinacao VARCHAR(10),
-# termo_imagem VARCHAR(10)
+# termo_imagem VARCHAR(10),
+# certidao VARCHAR(10),
+# frequencia INT DEFAULT 0,
+# frequencia_anual FLOAT DEFAULT 0
 # )'''
 # )
-#
 
+# cursor.execute('DROP TABLE Crianças')
+
+
+#
 # cursor.execute('''CREATE TABLE Voluntarios(
 # ID INT AUTO_INCREMENT PRIMARY KEY,
 # nome VARCHAR(50) NOT NULL,
@@ -48,9 +56,11 @@ cursor = conexao.cursor()
 # )
 
 
+
+#
 # cursor.execute('''
-#     ALTER TABLE Crianças
-#     ADD COLUMN frequencia INT DEFAULT 0
+#     ALTER TABLE Voluntarios
+#     ADD COLUMN frequencia_anual FLOAT DEFAULT 0
 # ''')
 
 
@@ -59,10 +69,7 @@ cursor = conexao.cursor()
 #     ADD COLUMN profissao VARCHAR(50) NOT NULL
 # ''')
 
-
-
 conexao.commit()
-
 
 class App:
     def __init__(self, root):
@@ -179,12 +186,9 @@ class App:
                                                  text_color='black')
         data_nascimento.place(x=475, y=60)
 
-        self.date_entry = DateEntry(self.nova_janela, width=12, background='#f2f28d', foreground='black', borderwidth=2,
-                                    date_pattern="dd/MM/yyyy")
+        self.date_entry = DateEntry(self.nova_janela, width=12, background='#f2f28d', foreground='black', borderwidth=2, date_pattern="dd/MM/yyyy")
         self.date_entry.place(x=580, y=65)
 
-        # self.data_nasc_entry = customtkinter.CTkEntry(self.nova_janela)
-        # self.data_nasc_entry.place(x=80, y=50,)
 
         # Telefone --------------------
         telefone_label = customtkinter.CTkLabel(self.nova_janela, text="Telefone:", bg_color="#ffffdc",
@@ -254,6 +258,20 @@ class App:
                                                   bg_color="#ffffdc", text_color='black')
         vacina_nao.place(x=630, y=400)
 
+        # Certidao ------------------------
+        self.certidao_var = StringVar()  # Variável de controle para os botões de opção
+
+        certidao_label = customtkinter.CTkLabel(self.nova_janela, text="Certidão de nascimento:", bg_color="#ffffdc",
+                                              text_color='black')
+        certidao_label.place(x=430, y=480)
+        certidao_sim = customtkinter.CTkRadioButton(self.nova_janela, text="Sim", variable=self.certidao_var, value="Sim",
+                                                  bg_color="#ffffdc", text_color='black')
+        certidao_sim.place(x=570, y=480)
+        certidao_nao = customtkinter.CTkRadioButton(self.nova_janela, text="Não", variable=self.certidao_var, value="Não",
+                                                  bg_color="#ffffdc", text_color='black')
+        certidao_nao.place(x=630, y=480)
+
+
         # TERMO -----------------------------
         self.termo_var = StringVar()  # Variável de controle
 
@@ -267,54 +285,161 @@ class App:
                                                  bg_color="#ffffdc", text_color='black')
         termo_nao.place(x=630, y=440)
 
-        # Certidão de nascimento (PDF)
-        # self.certidao_var = StringVar()  # Variável de controle para o caminho do arquivo PDF
-        #
-        # certidao_label = customtkinter.CTkLabel(self.nova_janela, text="Certidão de Nascimento (PDF):", bg_color="#ffffdc", text_color='black')
-        # certidao_label.place(x=470, y=490)
-        # certidao_button = customtkinter.CTkButton(self.nova_janela, text="Selecionar Arquivo", bg_color="#ffffdc",
-        #                                           command=self.selecionar_certidao)
-        # certidao_button.place(x=490, y=520)
-
-        # Botão CONFIRMAR
         confirmar_button = customtkinter.CTkButton(self.nova_janela, text="CONFIRMAR", width=170, height=50,
                                                    corner_radius=15, bg_color= '#ffffdc', command=self.salvar_informacoes)
         confirmar_button.place(x=485, y=530)
 
-    # def selecionar_certidao(self):
-    #     # filepath = filedialog.askopenfilename(initialdir="/", title="Selecione um arquivo",
-    #     #                                       filetypes=(("Arquivos PDF", "*.pdf"), ("Todos os arquivos", "*.*")))
-    #     # Exibe a janela de seleção de arquivo para salvar o PDF
-    #     filepath = filedialog.asksaveasfilename(defaultextension=".pdf",
-    #                                             filetypes=(("Arquivos PDF", "*.pdf"), ("Todos os arquivos", "*.*")))
-    #     if filepath:
-    #         # Aqui você pode adicionar código para salvar o arquivo PDF usando o caminho 'filepath'
-    #         customtkinter.messagebox.showinfo("Sucesso", f"Arquivo PDF salvo em:\n{filepath}")
-    #     else:
-    #         customtkinter.messagebox.showwarning("Cancelado", "Nenhum arquivo foi selecionado para salvar.")
 
+    def valida_nome(self, nome):
+        valida = True
+        if nome == '':
+            messagebox.showwarning('Campos vazios', 'Campo nome é obrigatório!')
+            valida = False
+        for i in nome:
+            if (not (i.isalpha()) and not (i.isspace())):
+                messagebox.showwarning('Campo inválido', 'Caracteres invalidos')
+                valida = False
+                break
+        if (len(nome) > 50):
+            messagebox.showwarning('Passou do total', 'Nome muito grande')
+            valida = False
+        return valida
 
+    def valida_telefone(self, telefone):
+        if len(telefone) != 11:
+            messagebox.showwarning('Telefone inválido',
+                                   'Digite um telefone válido com 11 dígitos no modelo 99999999999')
+            return False
+        for i in telefone:
+            if (not (i.isdigit())):
+                messagebox.showwarning('Telefone inválido', 'Só podem haver números no telefone')
+                return False
+        return True
 
+    def valida_cpf(self, cpf):
+        if len(cpf) != 14:
+            messagebox.showwarning('CPF inválido', 'Digite um cpf no modelo 123.123.123-12')
+            return False
+        for i in range(len(cpf)):
+            if (i == 3 and cpf[i] != '.'):
+                messagebox.showwarning('CPF inválido', 'Digite um cpf no modelo 123.123.123-12')
+                return False
+            elif (i == 7 and cpf[i] != '.'):
+                messagebox.showwarning('CPF inválido', 'Digite um cpf no modelo 123.123.123-12')
+                return False
+            elif (i == 11 and cpf[i] != '-'):
+                messagebox.showwarning('CPF inválido', 'Digite um cpf no modelo 123.123.123-12')
+                return False
+            elif (i != 3 and i != 7 and i != 11 and not (cpf[i].isdigit())):
+                messagebox.showwarning('CPF inválido', 'Digite um cpf no modelo 123.123.123-12')
+                return False
+
+        return True
+
+    def valida_rg(self, rg):
+        if len(rg) != 12:
+            messagebox.showwarning('RG inválido', 'Digite um RG válido no modelo: 00.000.000-0')
+            return False
+        for i in range(len(rg)):
+            if (i == 2 and rg[i] != '.'):
+                messagebox.showwarning('RG inválido', 'Digite um RG válido no modelo: 00.000.000-0')
+                return False
+            elif (i == 6 and rg[i] != '.'):
+                messagebox.showwarning('RG inválido', 'Digite um RG válido no modelo: 00.000.000-0')
+                return False
+            elif (i == 10 and rg[i] != '-'):
+                messagebox.showwarning('RG inválido', 'Digite um RG válido no modelo: 00.000.000-0')
+                return False
+            elif (i != 2 and i != 6 and i != 10 and not (rg[i].isdigit())):
+                messagebox.showwarning('RG inválido', 'Digite um RG válido no modelo: 00.000.000-0')
+                return False
+        return True
+
+    def valida_projeto(self, projeto):
+        if len(projeto) > 100:
+            messagebox.showwarning('Passou do total', 'Máximo de 100 caracteres')
+            return False
+        elif projeto == '':
+            messagebox.showwarning('Campo vazio', 'Campo projeto não pode ser vazio')
+            return False
+        return True
+
+    def valida_endereco(self, endereco):
+        if len(endereco) > 100:
+            messagebox.showwarning('Passou do total', 'Máximo de 100 caracteres')
+            return False
+        elif endereco == '':
+            messagebox.showwarning('Campo vazio', 'Campo endereço não pode ser vazio')
+            return False
+        return True
+
+    def valida_radio_button(self, teste):
+        if teste == '':
+            messagebox.showwarning('Campo vazio', 'Escolha uma das opções')
+            return False
+        return True
+
+    def calcular_idade(self, data_nascimento_str):
+        data_nascimento = datetime.datetime.strptime(data_nascimento_str, "%Y-%m-%d").date()
+        data_atual = datetime.date.today()
+        idade = data_atual.year - data_nascimento.year - (
+                        (data_atual.month, data_atual.day) < (data_nascimento.month, data_nascimento.day))
+        return idade
     def salvar_informacoes(self):
         # Coleta os dados dos campos de entrada
         nome = self.nome_entry.get()
+        if not self.valida_nome(nome):  # Chama a função de validação
+            return  # Retorna se o nome não for válido
         data_nascimento = self.date_entry.get_date()
+
         telefone = self.telefone_entry.get()
+        if not self.valida_telefone(telefone):
+            return
+
+        endereco = self.endereco.get()
+        if not self.valida_endereco(endereco):
+            return
+
         cpf = self.cpf_responsavel.get()
+        if not self.valida_cpf(cpf):
+            return
+
         rg = self.rg_resp.get()
+        if not self.valida_rg(rg):
+            return
+
         nome_resp = self.nome_resp.get()
+        if not self.valida_nome(nome):
+            return
+
         projeto = self.projeto.get()
+        if not self.valida_projeto(projeto):
+            return
+
         declaracao = self.declaracao_var.get()
         vacinacao = self.vacina_var.get()
         termo = self.termo_var.get()
-        # certidao = self.certidao_var.get()
+        certidao = self.certidao_var.get()
+
+        if not self.valida_radio_button(termo):
+            return
+        if not self.valida_radio_button(declaracao):
+            return
+        if not self.valida_radio_button(vacinacao):
+            return
+        if not self.valida_radio_button(certidao):
+            return
+
+            # Calcular a idade
+        idade = self.calcular_idade(data_nascimento.strftime('%Y-%m-%d'))
 
         # Inserir os dados no banco de dados
-        self.cursor.execute('''
-        INSERT INTO Crianças (nome, data_nascimento, telefone, cpf_responsavel, rg_resp, nome_resp, projeto, declaracao_escolar, vacinacao, termo_imagem)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
 
-        ''', (nome, data_nascimento, telefone, cpf, rg, nome_resp, projeto, declaracao, vacinacao, termo))
+
+        self.cursor.execute('''
+        INSERT INTO Crianças (nome, data_nascimento, idade, telefone, endereco, cpf_responsavel, rg_resp, nome_resp, projeto, declaracao_escolar, vacinacao, termo_imagem, certidao)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ''', (nome, data_nascimento, idade, telefone, endereco, cpf, rg, nome_resp, projeto, declaracao, vacinacao, termo, certidao))
         conexao.commit()
         messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
 
@@ -322,6 +447,7 @@ class App:
         print(f"Nome: {nome}")
         print(f"Data de Nascimento: {data_nascimento}")
         print(f"Telefone: {telefone}")
+        print(f"Endereço: {endereco}")
         print(f"CPF do Responsável: {cpf}")
         print(f"RG do Responsável: {rg}")
         print(f"Nome do Responsável: {nome_resp}")
@@ -329,7 +455,7 @@ class App:
         print(f"Declaração Escolar: {declaracao}")
         print(f"Vacinação em dia: {vacinacao}")
         print(f"Termo de imagem assinado: {termo}")
-        # print(f"Certidão de Nascimento: {certidao}")
+        print(f"Certidão de Nascimento: {certidao}")
     def fechar_janela_cadastro(self):
         # Fechar a nova janela
         self.nova_janela.destroy()
@@ -421,21 +547,50 @@ class App:
                                                    corner_radius=15, bg_color= '#ffffdc', command=self.salvar_informacoes_voluntarios)
         confirmar_button.place(x=515, y=420)
 
+    def valida_email(self, email):
+        if email == '':
+            messagebox.showwarning('Campo vazio', 'O campo email não pode ser vazio')
+            return False
+        teste = email.find('@')
+        if teste == -1:
+            messagebox.showwarning('Email inválido', 'Digite um email válido no formato xxxxxxx@xxxxx.xxx')
+            return False
+        if len(email) > 50:
+            messagebox.showwarning('Passou do total', 'Email muito grande')
+            return False
+        return True
+
     def salvar_informacoes_voluntarios(self):
 
         nome = self.nome_entry.get()
+        if not self.valida_nome(nome):
+            return
+
         telefone = self.telefone_entry.get()
+        if not self.valida_telefone(telefone):
+            return
+
         email = self.email_entry.get()
+        if not self.valida_email(email):
+            return
         profissao = self.profissao_entry.get()
+
+        if not self.valida_nome(profissao):
+            return
+
         projeto = self.projeto.get()
+        if not self.valida_projeto(projeto):
+            return
+
         participacao = self.participacao_var.get()
+        if not self.valida_radio_button(participacao):
+            return
 
 
 # Inserir os dados no banco de dados
         self.cursor.execute('''
         INSERT INTO Voluntarios (nome, telefone, email, profissao, projeto, participacao)
         VALUES (%s, %s, %s, %s, %s, %s)
-
         ''', (nome,telefone, email, profissao, projeto, participacao))
         conexao.commit()
         messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
@@ -487,16 +642,25 @@ class App:
         self.label_img.place(x=400, y=5)
 
 
+        atualizar_image = Image.open("atualizar.png")
+        atualizar_image = atualizar_image.resize((atualizar_image.width // 2, atualizar_image.height // 2))
+
+        atualizar = customtkinter.CTkImage(atualizar_image)
 
         # Botão Atualizar
-        atualizar_button = customtkinter.CTkButton(self.consulta_criancas, text="Atualizar", width=80, height=40,
+        atualizar_button = customtkinter.CTkButton(self.consulta_criancas, text="Atualizar", width=80, height=40, image=atualizar, compound="right",
                                                    corner_radius=15, bg_color= '#ffffdc', command=self.abrir_janela_editar_crianca)
-        atualizar_button.place(x=50, y=85)
+        atualizar_button.place(x=20, y=85)
+
+        lixeira_image = Image.open("lixeira.png")
+        lixeira_image = lixeira_image.resize((lixeira_image.width // 2, lixeira_image.height // 2))
+
+        lixeira = customtkinter.CTkImage(lixeira_image)
 
         # Botão Excluir
-        excluir_button = customtkinter.CTkButton(self.consulta_criancas, text="Excluir", width=80, height=40,
+        excluir_button = customtkinter.CTkButton(self.consulta_criancas, text="Excluir", width=80, height=40, image=lixeira, compound="right",
                                                    corner_radius=15, bg_color= '#ffffdc', command=self.excluir_dados_selecionados)
-        excluir_button.place(x=150, y=85)
+        excluir_button.place(x=140, y=85)
 
         # Carregar e redimensionar a imagem usando PIL
         lupa_image = Image.open("lupa.png")
@@ -515,16 +679,23 @@ class App:
         self.pesquisar_entry = customtkinter.CTkEntry(self.consulta_criancas, bg_color= '#ffffdc')
         self.pesquisar_entry.place(x=668, y=88)
 
+        voltar_image = Image.open("voltar.png")
+        voltar_image = voltar_image.resize((voltar_image.width // 2, voltar_image.height // 2))
+
+        voltar = customtkinter.CTkImage(voltar_image)
+
         # Botão Voltar
-        voltar_button = customtkinter.CTkButton(self.consulta_criancas, text="Voltar", width=100, height=40,
+        voltar_button = customtkinter.CTkButton(self.consulta_criancas, text="Voltar", width=100, height=40, image=voltar, compound="right",
                                                    corner_radius=15, bg_color= '#ffffdc',command=self.voltar)
         voltar_button.place(x=870, y=81)
 
         # Botão de Frequência
-        frequencia_button = customtkinter.CTkButton(self.consulta_criancas, text="Frequência", width=80, height=40,
+        frequencia_button = customtkinter.CTkButton(self.consulta_criancas, text="Falta", width=80, height=40,
                                                    corner_radius=15,bg_color= '#ffffdc', command=self.salvar_frequencia)
         frequencia_button.place(x=250, y=85)
 
+        reset_button = customtkinter.CTkButton(self.consulta_criancas, text="Reset", width=50, height=30, corner_radius=15, bg_color='#ffffdc', command=self.resetar_criancas)
+        reset_button.place(x=10, y=10)
 
 
         # Frame para Treeview e Scrollbars
@@ -546,13 +717,15 @@ class App:
 
         # Criar a treeview para exibir os dados
         self.tree = ttk.Treeview(frame_tree, columns=(
-            "ID","Nome", "Data de Nascimento", "Telefone", "CPF responsável", "RG responsável", "Nome responsável",
-            "Projeto", "Declaração escolar", "Vacinação", "Termo de imagem", "Frequência"), show="headings", style="Treeview")
+            "ID","Nome", "Data de Nascimento", "Idade", "Telefone", "Endereço", "CPF responsável", "RG responsável", "Nome responsável",
+            "Projeto", "Declaração escolar", "Vacinação", "Termo de imagem", "Certidão de nascimento", "Faltas", "% de Faltas"), show="headings", style="Treeview")
 
         self.tree.heading("ID", text="ID")
         self.tree.heading("Nome", text="Nome")
         self.tree.heading("Data de Nascimento", text="Data de Nascimento")
+        self.tree.heading("Idade", text="Idade")
         self.tree.heading("Telefone", text="Telefone")
+        self.tree.heading("Endereço", text="Endereço")
         self.tree.heading("CPF responsável", text="CPF responsável")
         self.tree.heading("RG responsável", text="RG responsável")
         self.tree.heading("Nome responsável", text="Nome responsável")
@@ -560,7 +733,9 @@ class App:
         self.tree.heading("Declaração escolar", text="Declaração escolar")
         self.tree.heading("Vacinação", text="Vacinação")
         self.tree.heading("Termo de imagem", text="Termo de imagem")
-        self.tree.heading("Frequência", text="Frequência")
+        self.tree.heading("Certidão de nascimento", text="Certidão de nascimento")
+        self.tree.heading("Faltas", text="Faltas")
+        self.tree.heading("% de Faltas", text="% de Faltas")
 
         # Ajustar a largura das colunas automaticamente
         for col in self.tree['columns']:
@@ -590,19 +765,19 @@ class App:
             self.tree.insert("", "end", values=row)
 
     def excluir_dados_selecionados(self):
-        # Obter o item selecionado na Treeview
+
         item_selecionado = self.tree.selection()
         if not item_selecionado:
             messagebox.showwarning("Nenhum item selecionado", "Por favor, selecione uma criança para deletar.",
                                    parent=self.consulta_criancas)
             return
-        # Obter o ID da criança selecionada
+
         id_selecionado = self.tree.item(item_selecionado, "values")[0]
-        # Confirmar a exclusão
+
         resposta = messagebox.askyesno("Confirmar Exclusão", "Tem certeza que deseja deletar esta criança?",
                                        parent=self.consulta_criancas)
         if resposta:
-            # Deletar o registro do banco de dados
+
             self.cursor.execute("DELETE FROM Crianças WHERE id = %s", (id_selecionado,))
             conexao.commit()
 
@@ -634,23 +809,73 @@ class App:
         self.janela_edicao.geometry("800x600")
         self.janela_edicao.resizable(False, False)
 
+        # Frame na direita -------------
+        crianca_frame = customtkinter.CTkFrame(self.janela_edicao, width=470, height=600, corner_radius=20,
+                                               fg_color="#ffffdc")
+        crianca_frame.pack(side=RIGHT, padx=0, pady=0)
+
+        label = customtkinter.CTkLabel(crianca_frame, text='Editar informações', font=('Roboto', 25, 'bold'), text_color='black')
+        label.place(x=150, y=50)
+
+        img = CTkImage(Image.open("icon.png"), size=(310, 230))
+        self.label_img = customtkinter.CTkLabel(self.janela_edicao, image=img, text="")
+        self.label_img.image = img
+        self.label_img.place(x=5, y=100)
+
+
         # Minimizar a janela principal
         self.root.iconify()
 
         # Nome
         nome_label = customtkinter.CTkLabel(self.janela_edicao, text="Nome:", bg_color="#ffffdc", text_color='black')
-        nome_label.place(x=495, y=10)
-        self.nome_entry = customtkinter.CTkEntry(self.janela_edicao)
-        self.nome_entry.place(x=560, y=10, )
+        nome_label.place(x=500, y=180)
+        self.nome_entry = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
+        self.nome_entry.place(x=560, y=180, )
+
+
+        # Telefone --------------------
+        telefone_label = customtkinter.CTkLabel(self.janela_edicao, text="Telefone:", bg_color="#ffffdc",
+                                                text_color='black')
+        telefone_label.place(x=490, y=230)
+        self.telefone_entry = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
+        self.telefone_entry.place(x=560, y=230)
+
+        # ENDEREÇO ----------------------------
+        endereco = customtkinter.CTkLabel(self.janela_edicao, text="Endereço:", bg_color="#ffffdc", text_color='black')
+        endereco.place(x=485, y=270)
+        self.endereco = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
+        self.endereco.place(x=560, y=270 )
+
+        # PROJETO ----------------------------
+        projeto = customtkinter.CTkLabel(self.janela_edicao, text="Projeto:", bg_color="#ffffdc", text_color='black')
+        projeto.place(x=495, y=320)
+        self.projeto = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
+        self.projeto.place(x=560, y=320, )
 
         # Botão SALVAR EDIÇÕES
         salvar_button = customtkinter.CTkButton(self.janela_edicao, text="SALVAR", width=170, height=50,
-                                                corner_radius=15, command=self.salvar_edicao)
-        salvar_button.place(x=315, y=200)
+                                                corner_radius=15, bg_color='#ffffdc', command=self.salvar_edicao)
+        salvar_button.place(x=490, y=390)
 
     def salvar_edicao(self):
         # Coleta os dados dos campos de entrada
         nome = self.nome_entry.get()
+        if not self.valida_nome(nome):  # Chama a função de validação
+            return # Retorna se o nome não for válido
+
+        endereco = self.endereco.get()
+        if not self.valida_endereco(endereco):
+            return
+
+        telefone = self.telefone_entry.get()
+        if not self.valida_telefone(telefone):
+            return
+
+        projeto = self.projeto.get()
+        if not self.valida_projeto(projeto):
+            return
+
+
 
         # Obter o ID da criança selecionada
         item_selecionado = self.tree.selection()
@@ -659,9 +884,9 @@ class App:
         # Atualizar os dados no banco de dados
         self.cursor.execute('''
                UPDATE Crianças
-               SET nome = %s
+               SET nome = %s, endereco = %s, telefone = %s, projeto = %s
                WHERE id = %s
-               ''', (nome, id_selecionado))
+               ''', (nome, endereco, telefone, projeto, id_selecionado))
         conexao.commit()
         messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
 
@@ -677,7 +902,8 @@ class App:
         # Obter o item selecionado na Treeview
         item_selecionado = self.tree.selection()
         if not item_selecionado:
-            messagebox.showwarning("Nenhum item selecionado", "Por favor, selecione uma criança para atualizar a frequência.",
+            messagebox.showwarning("Nenhum item selecionado",
+                                   "Por favor, selecione uma criança para atualizar a frequência.",
                                    parent=self.consulta_criancas)
             return
 
@@ -687,7 +913,7 @@ class App:
         frequencia_atual = self.cursor.fetchone()[0]
 
         # Caixa de diálogo de confirmação
-        resposta = messagebox.askyesno("Confirmação", "Marcar presença para esta criança?",
+        resposta = messagebox.askyesno("Confirmação", "Marcar falta para essa criança?",
                                        parent=self.consulta_criancas)
 
         if resposta:  # Se o usuário confirmou
@@ -699,11 +925,29 @@ class App:
         self.cursor.execute("UPDATE Crianças SET frequencia = %s WHERE id = %s", (nova_frequencia, id_selecionado))
         conexao.commit()
 
+        # Calcular a frequência anual esperada (assumindo 100 aulas por ano)
+        total_aulas_por_ano = 50
+
+        # Obter a frequência atual da criança selecionada
+        self.cursor.execute("SELECT frequencia FROM Crianças WHERE id = %s", (id_selecionado,))
+        frequencia_atual = self.cursor.fetchone()[0]
+
+        if total_aulas_por_ano > 0:
+            percentual_frequencia_anual = (frequencia_atual / total_aulas_por_ano) * 100
+        else:
+            percentual_frequencia_anual = 0.0
+
+        # Atualizar a frequência anual no banco de dados
+        self.cursor.execute("UPDATE Crianças SET frequencia_anual = %s WHERE id = %s",
+                            (percentual_frequencia_anual, id_selecionado))
+        conexao.commit()
+
         messagebox.showinfo("Frequência atualizada", "A frequência foi atualizada com sucesso.")
 
-        #Fechar a janela de edição
+        # Fechar a janela de edição
         self.consulta_criancas.destroy()
-        # Abrir a janela de edição novamente para reiniciar
+
+        # Abrir a janela de consulta novamente para atualizar os dados exibidos
         self.abrir_janela_consulta_crianca()
 
     def voltar(self):
@@ -714,20 +958,38 @@ class App:
     def pesquisar_por_nome(self):
         # Obter o nome digitado pelo usuário na entrada de pesquisa
         nome_pesquisado = self.pesquisar_entry.get()
+        projeto_pesquisado = self.pesquisar_entry.get()
+        endereco_pesquisado = self.pesquisar_entry.get()
+        idade_pesquisada = self.pesquisar_entry.get()
 
         # Limpar a treeview antes de exibir os resultados da pesquisa
         for item in self.tree.get_children():
             self.tree.delete(item)
 
-        # Consultar o banco de dados para obter crianças cujos nomes correspondem à pesquisa
-        self.cursor.execute("SELECT * FROM Crianças WHERE nome LIKE %s", ('%' + nome_pesquisado + '%',))
+        self.cursor.execute("SELECT * FROM Crianças WHERE nome LIKE %s OR projeto LIKE %s OR endereco LIKE %s OR idade LIKE %s", ('%' + nome_pesquisado + '%', '%' + projeto_pesquisado + '%', '%' + endereco_pesquisado + '%', '%' + idade_pesquisada + '%'))
         rows = self.cursor.fetchall()
         if not rows:
-            messagebox.showinfo("Nenhum resultado", "Nenhuma criança encontrada com esse nome.")
+            messagebox.showinfo("Nenhum resultado", "Nenhuma criança encontrada com essa informação.")
 
         # Adicionar os resultados da pesquisa à treeview
         for row in rows:
             self.tree.insert("", "end", values=row)
+
+    def resetar_criancas(self):
+        resposta = messagebox.askyesno("Confirmar Reset",
+                                       "Tem certeza que deseja resetar a frequência de todas as crianças?")
+        if not resposta:
+            return
+
+        self.cursor.execute("UPDATE Crianças SET frequencia = 0, frequencia_anual = 0")
+        conexao.commit()
+
+        messagebox.showinfo("Frequências Resetadas", "Todas as frequências foram resetadas com sucesso.")
+        # Fechar a janela de edição
+        self.consulta_criancas.destroy()
+
+        # Abrir a janela de consulta novamente para atualizar os dados exibidos
+        self.abrir_janela_consulta_crianca()
 
     def fechar_janela_consulta_criancas(self):
         # Fechar a nova janela
@@ -749,7 +1011,6 @@ class App:
         self.consulta_voluntarios = customtkinter.CTkToplevel(self.root)
         self.consulta_voluntarios.title("Consulta de voluntários")
         self.consulta_voluntarios.iconbitmap("icone.ico")
-        # self.consulta_criancas.state('zoomed')
         self.consulta_voluntarios.geometry("1000x600")
         self.consulta_voluntarios.resizable(False, False)
         self.root.iconify()
@@ -776,15 +1037,27 @@ class App:
         self.label_img.image = img
         self.label_img.place(x=400, y=5)
 
+        atualizar_image = Image.open("atualizar.png")
+        atualizar_image = atualizar_image.resize((atualizar_image.width // 2, atualizar_image.height // 2))
+
+        atualizar = customtkinter.CTkImage(atualizar_image)
+
         # Botão Atualizar
-        atualizar_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Atualizar", width=80, height=40,
+        atualizar_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Atualizar", width=40, height=40, image=atualizar, compound="right",
                                                    corner_radius=15, bg_color= '#ffffdc', command=self.abrir_janela_editar_voluntario)
-        atualizar_button.place(x=50, y=85)
+        atualizar_button.place(x=20, y=85)
+
+        # Carregar e redimensionar a imagem usando PIL
+        lixeira_image = Image.open("lixeira.png")
+        lixeira_image = lixeira_image.resize((lixeira_image.width // 2, lixeira_image.height // 2))
+
+        lixeira = customtkinter.CTkImage(lixeira_image)
 
         # Botão Excluir
-        excluir_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Excluir", width=80, height=40,
+        excluir_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Excluir", width=60, height=40, image=lixeira, compound="right",
                                                    corner_radius=15, bg_color= '#ffffdc', command=self.excluir_voluntario)
-        excluir_button.place(x=150, y=85)
+        excluir_button.place(x=140, y=85)
+
 
         # Carregar e redimensionar a imagem usando PIL
         lupa_image = Image.open("lupa.png")
@@ -803,17 +1076,25 @@ class App:
         self.pesquisar_entry = customtkinter.CTkEntry(self.consulta_voluntarios, bg_color= '#ffffdc')
         self.pesquisar_entry.place(x=668, y=88)
 
+
+        voltar_image = Image.open("voltar.png")
+        voltar_image = voltar_image.resize((voltar_image.width // 2, voltar_image.height // 2))
+
+        voltar = customtkinter.CTkImage(voltar_image)
+
+
         # Botão Voltar
-        voltar_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Voltar", width=100, height=40,
+        voltar_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Voltar", width=100, height=40, image=voltar, compound="right",
                                                    corner_radius=15, bg_color= '#ffffdc',command=self.voltar_voluntarios)
         voltar_button.place(x=870, y=81)
 
         # Botão de Frequência
-        frequencia_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Frequência", width=80, height=40,
+        frequencia_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Falta", width=80, height=40,
                                                    corner_radius=15,bg_color= '#ffffdc', command=self.salvar_frequencia_voluntario)
         frequencia_button.place(x=250, y=85)
 
-
+        reset_button = customtkinter.CTkButton(self.consulta_voluntarios, text="Reset", width=50, height=30, corner_radius=15, bg_color='#ffffdc', command=self.resetar_todas_frequencias)
+        reset_button.place(x=10, y=10)
 
         # Frame para Treeview e Scrollbars
         frame_tree = customtkinter.CTkFrame(self.consulta_voluntarios)
@@ -835,7 +1116,7 @@ class App:
         # Criar a treeview para exibir os dados
         self.tree = ttk.Treeview(frame_tree, columns=(
             "ID","Nome","Telefone","E-mail","Profissão",
-             "Projeto","Participação","Frequência"), show="headings", style="Treeview")
+             "Projeto","Participação","Faltas", "% de Faltas"), show="headings", style="Treeview")
 
         self.tree.heading("ID", text="ID")
         self.tree.heading("Nome", text="Nome")
@@ -844,7 +1125,8 @@ class App:
         self.tree.heading("Profissão", text="Profissão")
         self.tree.heading("Projeto", text="Projeto")
         self.tree.heading("Participação", text="Participação")
-        self.tree.heading("Frequência", text="Frequência")
+        self.tree.heading("Faltas", text="Faltas")
+        self.tree.heading("% de Faltas", text="% de Faltas")
 
         # Ajustar a largura das colunas automaticamente
         for col in self.tree['columns']:
@@ -880,7 +1162,7 @@ class App:
             messagebox.showwarning("Nenhum item selecionado", "Por favor, selecione um voluntário para deletar.",
                                    parent=self.consulta_voluntarios)
             return
-        # Obter o ID da criança selecionada
+
         id_selecionado = self.tree.item(item_selecionado, "values")[0]
         # Confirmar a exclusão
         resposta = messagebox.askyesno("Confirmar Exclusão", "Tem certeza que deseja deletar este voluntário?",
@@ -903,7 +1185,6 @@ class App:
                                        parent=self.consulta_voluntarios)
             return
 
-        # Obter os dados da criança selecionada
         id_selecionado = self.tree.item(item_selecionado, "values")[0]
         self.cursor.execute("SELECT * FROM Voluntarios WHERE id = %s", (id_selecionado,))
         dados_voluntario = self.cursor.fetchone()
@@ -919,34 +1200,89 @@ class App:
         self.janela_editar_voluntario.geometry("800x600")
         self.janela_editar_voluntario.resizable(False, False)
 
+        crianca_frame = customtkinter.CTkFrame(self.janela_editar_voluntario, width=470, height=600, corner_radius=20,
+                                               fg_color="#ffffdc")
+        crianca_frame.pack(side=RIGHT, padx=0, pady=0)
+
+        label = customtkinter.CTkLabel(crianca_frame, text='Editar informações', font=('Roboto', 25, 'bold'),
+                                       text_color='black')
+        label.place(x=150, y=50)
+
+        img = CTkImage(Image.open("icon.png"), size=(310, 230))
+        self.label_img = customtkinter.CTkLabel(self.janela_editar_voluntario, image=img, text="")
+        self.label_img.image = img
+        self.label_img.place(x=5, y=100)
+
         # Minimizar a janela principal
         self.root.iconify()
 
         # Nome
-        nome_label = customtkinter.CTkLabel(self.janela_editar_voluntario, text="Nome:", bg_color="#ffffdc", text_color='black')
-        nome_label.place(x=495, y=10)
-        self.nome_entry = customtkinter.CTkEntry(self.janela_editar_voluntario)
-        self.nome_entry.place(x=560, y=10, )
+        nome_label = customtkinter.CTkLabel(self.janela_editar_voluntario, text="Nome:", bg_color="#ffffdc",
+                                            text_color='black')
+        nome_label.place(x=500, y=120)
+        self.nome_entry = customtkinter.CTkEntry(self.janela_editar_voluntario, bg_color='#ffffdc')
+        self.nome_entry.place(x=560, y=120, )
+
+        # Telefone --------------------
+        telefone_label = customtkinter.CTkLabel(self.janela_editar_voluntario, text="Telefone:", bg_color="#ffffdc",
+                                                text_color='black')
+        telefone_label.place(x=490, y=220)
+        self.telefone_entry = customtkinter.CTkEntry(self.janela_editar_voluntario, bg_color='#ffffdc')
+        self.telefone_entry.place(x=560, y=220)
+
+        # EMAIL --------------------
+        email_label = customtkinter.CTkLabel(self.janela_editar_voluntario, text="Email:", bg_color="#ffffdc",
+                                             text_color='black')
+        email_label.place(x=500, y=170)
+        self.email_entry = customtkinter.CTkEntry(self.janela_editar_voluntario, bg_color='#ffffdc')
+        self.email_entry.place(x=560, y=170)
+
+        # PROFISSÃO --------------------
+        profissao_label = customtkinter.CTkLabel(self.janela_editar_voluntario, text="Profissão:", bg_color="#ffffdc",
+                                                 text_color='black')
+        profissao_label.place(x=490, y=270)
+        self.profissao_entry = customtkinter.CTkEntry(self.janela_editar_voluntario, bg_color='#ffffdc')
+        self.profissao_entry.place(x=560, y=270)
+
+        # PROJETO ----------------------------
+        projeto = customtkinter.CTkLabel(self.janela_editar_voluntario, text="Projeto:", bg_color="#ffffdc",
+                                         text_color='black')
+        projeto.place(x=500, y=320)
+        self.projeto = customtkinter.CTkEntry(self.janela_editar_voluntario, bg_color='#ffffdc')
+        self.projeto.place(x=560, y=320, )
 
         # Botão SALVAR EDIÇÕES
         salvar_button = customtkinter.CTkButton(self.janela_editar_voluntario, text="SALVAR", width=170, height=50,
-                                                    corner_radius=15, command=self.salvar_edicao)
-        salvar_button.place(x=315, y=200)
+                                                    corner_radius=15, bg_color='#ffffdc', command=self.salvar_edicao_voluntario)
+        salvar_button.place(x=480, y=400)
 
-    def salvar_edicao(self):
+    def salvar_edicao_voluntario(self):
         # Coleta os dados dos campos de entrada
         nome = self.nome_entry.get()
+        if not self.valida_nome(nome):
+            return
+        telefone = self.telefone_entry.get()
+        if not self.valida_telefone(telefone):
+            return
+        email = self.email_entry.get()
+        if not self.valida_email(email):
+            return
+        profissao = self.profissao_entry.get()
+        if not self.valida_nome(profissao):
+            return
+        projeto = self.projeto.get()
+        if not self.valida_projeto(projeto):
+            return
 
-        # Obter o ID da criança selecionada
         item_selecionado = self.tree.selection()
         id_selecionado = self.tree.item(item_selecionado, "values")[0]
 
         # Atualizar os dados no banco de dados
         self.cursor.execute('''
                 UPDATE Voluntarios
-                SET nome = %s
+                SET nome = %s, telefone = %s, email = %s, profissao = %s, projeto = %s
                 WHERE id = %s
-        ''', (nome, id_selecionado))
+        ''', (nome, telefone, email, profissao, projeto, id_selecionado))
         conexao.commit()
         messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
 
@@ -966,7 +1302,6 @@ class App:
                                    parent=self.consulta_voluntarios)
             return
 
-        # Obter os dados da criança selecionada
         id_selecionado = self.tree.item(item_selecionado, "values")[0]
         self.cursor.execute("SELECT frequencia FROM Voluntarios WHERE id = %s", (id_selecionado,))
         frequencia_atual = self.cursor.fetchone()[0]
@@ -980,8 +1315,21 @@ class App:
         else:  # Se o usuário cancelou
             nova_frequencia = frequencia_atual
 
-        # Atualizar a frequência no banco de dados
         self.cursor.execute("UPDATE Voluntarios SET frequencia = %s WHERE id = %s", (nova_frequencia, id_selecionado))
+
+        total_aulas_por_ano = 50
+
+        self.cursor.execute("SELECT frequencia FROM Voluntarios WHERE id = %s", (id_selecionado,))
+        frequencia_atual = self.cursor.fetchone()[0]
+
+        if total_aulas_por_ano > 0:
+            percentual_frequencia_anual = (frequencia_atual / total_aulas_por_ano) * 100
+        else:
+            percentual_frequencia_anual = 0.0
+
+        # Atualizar a frequência anual no banco de dados
+        self.cursor.execute("UPDATE Voluntarios SET frequencia_anual = %s WHERE id = %s",
+                            (percentual_frequencia_anual, id_selecionado))
         conexao.commit()
 
         messagebox.showinfo("Frequência atualizada", "A frequência foi atualizada com sucesso.")
@@ -999,13 +1347,14 @@ class App:
     def pesquisar_por_nome_voluntarios(self):
         # Obter o nome digitado pelo usuário na entrada de pesquisa
         nome_pesquisado = self.pesquisar_entry.get()
+        projeto_pesquisado = self.pesquisar_entry.get()
 
         # Limpar a treeview antes de exibir os resultados da pesquisa
         for item in self.tree.get_children():
             self.tree.delete(item)
 
         # Consultar o banco de dados para obter crianças cujos nomes correspondem à pesquisa
-        self.cursor.execute("SELECT * FROM Voluntarios WHERE nome LIKE %s", ('%' + nome_pesquisado + '%',))
+        self.cursor.execute("SELECT * FROM Voluntarios WHERE nome LIKE %s OR projeto LIKE %s", ('%' + nome_pesquisado + '%', '%' + projeto_pesquisado + '%'))
         rows = self.cursor.fetchall()
 
         if not rows:
@@ -1014,6 +1363,24 @@ class App:
         # Adicionar os resultados da pesquisa à treeview
         for row in rows:
             self.tree.insert("", "end", values=row)
+
+
+    def resetar_todas_frequencias(self):
+            resposta = messagebox.askyesno("Confirmar Reset",
+                                           "Tem certeza que deseja resetar a frequência de todos os voluntários?")
+            if not resposta:
+                return
+
+
+            self.cursor.execute("UPDATE Voluntarios SET frequencia = 0, frequencia_anual = 0")
+            conexao.commit()
+
+            messagebox.showinfo("Frequências Resetadas", "Todas as frequências foram resetadas com sucesso.")
+
+        # Fechar a janela de edição
+            self.consulta_voluntarios.destroy()
+        # Abrir a janela de edição novamente para reiniciar
+            self.abrir_janela_consulta_voluntarios()
 
     def fechar_janela_consulta_voluntarios(self):
         # Fechar a nova janela
