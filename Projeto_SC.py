@@ -14,7 +14,7 @@ conexao = mysql.connector.connect(
     host='localhost',
     user='root',
     passwd='',
-    database='SempreCriança'
+    database='semprecriança'
 )
 
 cursor = conexao.cursor()
@@ -34,8 +34,7 @@ cursor = conexao.cursor()
 # vacinacao VARCHAR(10),
 # termo_imagem VARCHAR(10),
 # certidao VARCHAR(10),
-# frequencia INT DEFAULT 0,
-# frequencia_anual FLOAT DEFAULT 0
+# frequencia INT DEFAULT 0
 # )'''
 # )
 
@@ -56,19 +55,6 @@ cursor = conexao.cursor()
 # )
 
 
-
-#
-# cursor.execute('''
-#     ALTER TABLE Voluntarios
-#     ADD COLUMN frequencia_anual FLOAT DEFAULT 0
-# ''')
-
-
-# cursor.execute('''
-#     ALTER TABLE Voluntarios
-#     ADD COLUMN profissao VARCHAR(50) NOT NULL
-# ''')
-
 conexao.commit()
 
 class App:
@@ -82,6 +68,7 @@ class App:
         self.cursor = conexao.cursor()
         self.tree = None  # Inicialize o atributo tree
         self.root.iconbitmap("icone.ico")
+
 
         # ICONE DO APLICATIVO --------
         myappid = 'mycompany.myproduct.subproduct.version'
@@ -385,6 +372,7 @@ class App:
         idade = data_atual.year - data_nascimento.year - (
                         (data_atual.month, data_atual.day) < (data_nascimento.month, data_nascimento.day))
         return idade
+
     def salvar_informacoes(self):
         # Coleta os dados dos campos de entrada
         nome = self.nome_entry.get()
@@ -409,7 +397,7 @@ class App:
             return
 
         nome_resp = self.nome_resp.get()
-        if not self.valida_nome(nome):
+        if not self.valida_nome(nome_resp):
             return
 
         projeto = self.projeto.get()
@@ -714,11 +702,10 @@ class App:
                         font=("Helvetica", 10))
         style.map("Treeview", background=[('selected', '#0078D7')])
 
-
         # Criar a treeview para exibir os dados
         self.tree = ttk.Treeview(frame_tree, columns=(
             "ID","Nome", "Data de Nascimento", "Idade", "Telefone", "Endereço", "CPF responsável", "RG responsável", "Nome responsável",
-            "Projeto", "Declaração escolar", "Vacinação", "Termo de imagem", "Certidão de nascimento", "Faltas", "% de Faltas"), show="headings", style="Treeview")
+            "Projeto", "Declaração escolar", "Vacinação", "Termo de imagem", "Certidão de nascimento", "Faltas"), show="headings", style="Treeview")
 
         self.tree.heading("ID", text="ID")
         self.tree.heading("Nome", text="Nome")
@@ -735,7 +722,6 @@ class App:
         self.tree.heading("Termo de imagem", text="Termo de imagem")
         self.tree.heading("Certidão de nascimento", text="Certidão de nascimento")
         self.tree.heading("Faltas", text="Faltas")
-        self.tree.heading("% de Faltas", text="% de Faltas")
 
         # Ajustar a largura das colunas automaticamente
         for col in self.tree['columns']:
@@ -756,6 +742,13 @@ class App:
 
         frame_tree.grid_rowconfigure(0, weight=1)
         frame_tree.grid_columnconfigure(0, weight=1)
+
+        self.cursor.execute('SELECT data_nascimento, id FROM Crianças')
+        buscar_idade = self.cursor.fetchall()
+
+        for data, idzinho in buscar_idade:
+            atualiza = self.calcular_idade(data.strftime('%Y-%m-%d'))
+            self.cursor.execute('UPDATE Crianças SET idade=%s WHERE id=%s', (atualiza, idzinho))
 
 
         # Buscar dados do banco de dados e adicionar ao Treeview
@@ -826,44 +819,84 @@ class App:
         # Minimizar a janela principal
         self.root.iconify()
 
+        # Executa a consulta para obter dados
+        self.cursor.execute('SELECT nome, endereco, telefone, projeto, cpf_responsavel, rg_resp, nome_resp FROM crianças')
+        resultados = self.cursor.fetchall()
+
         # Nome
         nome_label = customtkinter.CTkLabel(self.janela_edicao, text="Nome:", bg_color="#ffffdc", text_color='black')
         nome_label.place(x=500, y=180)
         self.nome_entry = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
-        self.nome_entry.place(x=560, y=180, )
+        self.nome_entry.place(x=560, y=180)
 
 
-        # Telefone --------------------
+        # Telefone
         telefone_label = customtkinter.CTkLabel(self.janela_edicao, text="Telefone:", bg_color="#ffffdc",
                                                 text_color='black')
         telefone_label.place(x=490, y=230)
         self.telefone_entry = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
         self.telefone_entry.place(x=560, y=230)
 
-        # ENDEREÇO ----------------------------
-        endereco = customtkinter.CTkLabel(self.janela_edicao, text="Endereço:", bg_color="#ffffdc", text_color='black')
-        endereco.place(x=485, y=270)
-        self.endereco = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
-        self.endereco.place(x=560, y=270 )
+        # Endereço
+        endereco_label = customtkinter.CTkLabel(self.janela_edicao, text="Endereço:", bg_color="#ffffdc",
+                                                text_color='black')
+        endereco_label.place(x=485, y=280)
+        self.endereco_entry = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
+        self.endereco_entry.place(x=560, y=280)
 
-        # PROJETO ----------------------------
-        projeto = customtkinter.CTkLabel(self.janela_edicao, text="Projeto:", bg_color="#ffffdc", text_color='black')
-        projeto.place(x=495, y=320)
-        self.projeto = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
-        self.projeto.place(x=560, y=320, )
+        # Projeto (adicionado no seu exemplo)
+        projeto_label = customtkinter.CTkLabel(self.janela_edicao, text="Projeto:", bg_color="#ffffdc",
+                                               text_color='black')
+        projeto_label.place(x=495, y=320)
+        self.projeto_entry = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
+        self.projeto_entry.place(x=560, y=320)
+
+        # CPF -----------------------
+        cpf_responsavel = customtkinter.CTkLabel(self.janela_edicao, text="CPF do \nResponsável:", bg_color="#ffffdc",
+                                                 text_color='black')
+        cpf_responsavel.place(x=475, y=360)
+        self.cpf_responsavel = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
+        self.cpf_responsavel.place(x=560, y=360, )
+
+        # RG ------------------
+        rg_resp = customtkinter.CTkLabel(self.janela_edicao, text="RG do \nResponsável:", bg_color="#ffffdc",
+                                         text_color='black')
+        rg_resp.place(x=475, y=400)
+        self.rg_resp = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
+        self.rg_resp.place(x=560, y=400, )
+
+        # NOME DO RESPONSÁVEL ----------------------------
+        nome_resp = customtkinter.CTkLabel(self.janela_edicao, text="Nome do\nResponsável:", bg_color="#ffffdc",
+                                           text_color='black')
+        nome_resp.place(x=475, y=440)
+        self.nome_resp = customtkinter.CTkEntry(self.janela_edicao, bg_color='#ffffdc')
+        self.nome_resp.place(x=560, y=440, )
 
         # Botão SALVAR EDIÇÕES
         salvar_button = customtkinter.CTkButton(self.janela_edicao, text="SALVAR", width=170, height=50,
                                                 corner_radius=15, bg_color='#ffffdc', command=self.salvar_edicao)
-        salvar_button.place(x=490, y=390)
+        salvar_button.place(x=490, y=500)
 
+        # Preenchendo os campos com os dados da primeira criança (ajuste conforme necessário)
+        if resultados:
+            self.nome_entry.insert(customtkinter.END, resultados[0][0])
+            self.endereco_entry.insert(customtkinter.END, resultados[0][1])
+            self.telefone_entry.insert(customtkinter.END, resultados[0][2])
+            self.projeto_entry.insert(customtkinter.END, resultados[0][3])
+            self.cpf_responsavel.insert(customtkinter.END, resultados[0][4])
+            self.rg_resp.insert(customtkinter.END, resultados[0][5])
+            self.nome_resp.insert(customtkinter.END, resultados[0][6])
+
+
+
+            # self.projeto_entry.insert(tk.END, resultados[0][3])  # Caso o projeto esteja no banco de dados
     def salvar_edicao(self):
         # Coleta os dados dos campos de entrada
         nome = self.nome_entry.get()
         if not self.valida_nome(nome):  # Chama a função de validação
             return # Retorna se o nome não for válido
 
-        endereco = self.endereco.get()
+        endereco = self.endereco_entry.get()
         if not self.valida_endereco(endereco):
             return
 
@@ -871,8 +904,18 @@ class App:
         if not self.valida_telefone(telefone):
             return
 
-        projeto = self.projeto.get()
+        projeto = self.projeto_entry.get()
         if not self.valida_projeto(projeto):
+            return
+
+        cpf_responsavel = self.cpf_responsavel.get()
+        if not self.valida_cpf(cpf_responsavel):
+            return
+        rg_resp = self.rg_resp.get()
+        if not self.valida_rg(rg_resp):
+            return
+        nome_resp = self.nome_resp.get()
+        if not self.valida_nome(nome_resp):
             return
 
 
@@ -884,9 +927,9 @@ class App:
         # Atualizar os dados no banco de dados
         self.cursor.execute('''
                UPDATE Crianças
-               SET nome = %s, endereco = %s, telefone = %s, projeto = %s
+               SET nome = %s, endereco = %s, telefone = %s, projeto = %s, cpf_responsavel = %s, rg_resp = %s, nome_resp = %s
                WHERE id = %s
-               ''', (nome, endereco, telefone, projeto, id_selecionado))
+               ''', (nome, endereco, telefone, projeto, cpf_responsavel, rg_resp, nome_resp, id_selecionado))
         conexao.commit()
         messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
 
@@ -932,17 +975,9 @@ class App:
         self.cursor.execute("SELECT frequencia FROM Crianças WHERE id = %s", (id_selecionado,))
         frequencia_atual = self.cursor.fetchone()[0]
 
-        if total_aulas_por_ano > 0:
-            percentual_frequencia_anual = (frequencia_atual / total_aulas_por_ano) * 100
-        else:
-            percentual_frequencia_anual = 0.0
-
-        # Atualizar a frequência anual no banco de dados
-        self.cursor.execute("UPDATE Crianças SET frequencia_anual = %s WHERE id = %s",
-                            (percentual_frequencia_anual, id_selecionado))
         conexao.commit()
-
         messagebox.showinfo("Frequência atualizada", "A frequência foi atualizada com sucesso.")
+
 
         # Fechar a janela de edição
         self.consulta_criancas.destroy()
@@ -952,6 +987,7 @@ class App:
 
     def voltar(self):
         # Fechar a janela de consulta e restaurar a janela principal
+
         self.consulta_criancas.destroy()
         self.root.deiconify()
 
@@ -981,10 +1017,10 @@ class App:
         if not resposta:
             return
 
-        self.cursor.execute("UPDATE Crianças SET frequencia = 0, frequencia_anual = 0")
+        self.cursor.execute("UPDATE Crianças SET frequencia = 0")
         conexao.commit()
 
-        messagebox.showinfo("Frequências Resetadas", "Todas as frequências foram resetadas com sucesso.")
+        messagebox.showinfo("Frequência Resetada", "Todas as frequências foram resetadas com sucesso.")
         # Fechar a janela de edição
         self.consulta_criancas.destroy()
 
@@ -1116,7 +1152,7 @@ class App:
         # Criar a treeview para exibir os dados
         self.tree = ttk.Treeview(frame_tree, columns=(
             "ID","Nome","Telefone","E-mail","Profissão",
-             "Projeto","Participação","Faltas", "% de Faltas"), show="headings", style="Treeview")
+             "Projeto","Participação","Faltas"), show="headings", style="Treeview")
 
         self.tree.heading("ID", text="ID")
         self.tree.heading("Nome", text="Nome")
@@ -1126,7 +1162,6 @@ class App:
         self.tree.heading("Projeto", text="Projeto")
         self.tree.heading("Participação", text="Participação")
         self.tree.heading("Faltas", text="Faltas")
-        self.tree.heading("% de Faltas", text="% de Faltas")
 
         # Ajustar a largura das colunas automaticamente
         for col in self.tree['columns']:
@@ -1216,6 +1251,11 @@ class App:
         # Minimizar a janela principal
         self.root.iconify()
 
+        # Executa a consulta para obter dados
+        self.cursor.execute(
+            'SELECT nome, telefone, email, profissao, projeto FROM Voluntarios')
+        resultados = self.cursor.fetchall()
+
         # Nome
         nome_label = customtkinter.CTkLabel(self.janela_editar_voluntario, text="Nome:", bg_color="#ffffdc",
                                             text_color='black')
@@ -1250,6 +1290,15 @@ class App:
         projeto.place(x=500, y=320)
         self.projeto = customtkinter.CTkEntry(self.janela_editar_voluntario, bg_color='#ffffdc')
         self.projeto.place(x=560, y=320, )
+
+        if resultados:
+            self.nome_entry.insert(customtkinter.END, resultados[0][0])
+            self.telefone_entry.insert(customtkinter.END, resultados[0][1])
+            self.email_entry.insert(customtkinter.END, resultados[0][2])
+            self.profissao_entry.insert(customtkinter.END, resultados[0][3])
+            self.projeto.insert(customtkinter.END, resultados[0][4])
+
+
 
         # Botão SALVAR EDIÇÕES
         salvar_button = customtkinter.CTkButton(self.janela_editar_voluntario, text="SALVAR", width=170, height=50,
@@ -1316,22 +1365,7 @@ class App:
             nova_frequencia = frequencia_atual
 
         self.cursor.execute("UPDATE Voluntarios SET frequencia = %s WHERE id = %s", (nova_frequencia, id_selecionado))
-
-        total_aulas_por_ano = 50
-
-        self.cursor.execute("SELECT frequencia FROM Voluntarios WHERE id = %s", (id_selecionado,))
-        frequencia_atual = self.cursor.fetchone()[0]
-
-        if total_aulas_por_ano > 0:
-            percentual_frequencia_anual = (frequencia_atual / total_aulas_por_ano) * 100
-        else:
-            percentual_frequencia_anual = 0.0
-
-        # Atualizar a frequência anual no banco de dados
-        self.cursor.execute("UPDATE Voluntarios SET frequencia_anual = %s WHERE id = %s",
-                            (percentual_frequencia_anual, id_selecionado))
         conexao.commit()
-
         messagebox.showinfo("Frequência atualizada", "A frequência foi atualizada com sucesso.")
 
         # Fechar a janela de edição
@@ -1372,10 +1406,9 @@ class App:
                 return
 
 
-            self.cursor.execute("UPDATE Voluntarios SET frequencia = 0, frequencia_anual = 0")
+            self.cursor.execute("UPDATE Voluntarios SET frequencia = 0")
             conexao.commit()
-
-            messagebox.showinfo("Frequências Resetadas", "Todas as frequências foram resetadas com sucesso.")
+            messagebox.showinfo("Frequência Resetada", "Todas as frequências foram resetadas com sucesso.")
 
         # Fechar a janela de edição
             self.consulta_voluntarios.destroy()
