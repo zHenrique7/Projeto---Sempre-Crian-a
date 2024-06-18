@@ -1,60 +1,59 @@
-from tkinter import filedialog, ttk, font, messagebox
-from tkinter.ttk import Treeview
+import os
+import sys
+from tkinter import ttk, messagebox
 import customtkinter
 from customtkinter import CTkImage
 from tkinter import *
-from PIL import Image, ImageTk  # Importação correta do Pillow
-from tkcalendar import Calendar, DateEntry
-import mysql.connector
+from PIL import Image  # Importação correta do Pillow
+from tkcalendar import DateEntry
+import sqlite3
 import ctypes
-import datetime
+from datetime import datetime
 
+diretorio_executavel = os.path.dirname(sys.executable)
 
-conexao = mysql.connector.connect(
-    host='localhost',
-    user='root',
-    passwd='',
-    database='semprecriança'
-)
+# Construir o caminho para o banco de dados
+caminho_banco_dados = os.path.join(diretorio_executavel, 'SempreCrianca.db')
+conexao = sqlite3.connect('SempreCrianca.db')
 
 cursor = conexao.cursor()
-# cursor.execute('CREATE DATABASE if not exists SempreCriança')
-# cursor.execute('''Create table Crianças(
-# id INT AUTO_INCREMENT PRIMARY KEY,
-# nome VARCHAR(50) NOT NULL,
-# data_nascimento DATE NOT NULL,
-# idade INT NOT NULL,
-# telefone VARCHAR(11) NOT NULL,
-# endereco VARCHAR(100) NOT NULL,
-# cpf_responsavel VARCHAR(14) NOT NULL,
-# rg_resp VARCHAR(12) NOT NULL,
-# nome_resp VARCHAR(50) NOT NULL,
-# projeto VARCHAR(100) NOT NULL,
-# declaracao_escolar VARCHAR(10),
-# vacinacao VARCHAR(10),
-# termo_imagem VARCHAR(10),
-# certidao VARCHAR(10),
-# frequencia INT DEFAULT 0
-# )'''
-# )
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS Crianças (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        Nome VARCHAR(50) NOT NULL,
+        data_nascimento DATE NOT NULL,
+        idade INT NOT NULL,
+        telefone VARCHAR(11) NOT NULL,
+        endereco VARCHAR(100) NOT NULL,
+        cpf_responsavel VARCHAR(14) NOT NULL,
+        rg_resp VARCHAR(12) NOT NULL,
+        nome_resp VARCHAR(50) NOT NULL,
+        projeto VARCHAR(100) NOT NULL,
+        declaracao_escolar VARCHAR(10),
+        vacinacao VARCHAR(10),
+        termo_imagem VARCHAR(10),
+        certidao VARCHAR(10),
+        frequencia INT DEFAULT 0
+    )
+''')
+
 
 # cursor.execute('DROP TABLE Crianças')
 
 
 #
-# cursor.execute('''CREATE TABLE Voluntarios(
-# ID INT AUTO_INCREMENT PRIMARY KEY,
-# nome VARCHAR(50) NOT NULL,
-# telefone VARCHAR(11) NOT NULL,
-# email VARCHAR(50) NOT NULL,
-# profissao VARCHAR(50) NOT NULL,
-# projeto VARCHAR(100) NOT NULL,
-# participacao VARCHAR(10) NOT NULL,
-# frequencia INT DEFAULT 0
-# )'''
-# )
-
-
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS Voluntarios (
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome VARCHAR(50) NOT NULL,
+        telefone VARCHAR(11) NOT NULL,
+        email VARCHAR(50) NOT NULL,
+        profissao VARCHAR(50) NOT NULL,
+        projeto VARCHAR(100) NOT NULL,
+        participacao VARCHAR(10) NOT NULL,
+        frequencia INTEGER DEFAULT 0
+    )
+''')
 conexao.commit()
 
 class App:
@@ -78,11 +77,23 @@ class App:
         customtkinter.set_appearance_mode("light")
         customtkinter.set_default_color_theme("dark-blue")
 
+    def centralizar_janela(self, largura, altura, janela):
+        # Obter as dimensões da tela
+        largura_tela = self.root.winfo_screenwidth()
+        altura_tela = self.root.winfo_screenheight()
+
+        # Calcular as coordenadas para centralizar a janela
+        x = (largura_tela - largura) // 2
+        y = (altura_tela - altura) // 2
+
+        # Definir as dimensões e coordenadas da janela
+        janela.geometry('%dx%d+%d+%d' % (largura, altura, x, y))
+
     def create_widgets(self):
         self.root.geometry("700x500")
         self.root.title("Sempre criança")
         self.root.resizable(False, False)
-
+        self.centralizar_janela(700,500,self.root)
         img = CTkImage(Image.open("icon.png"), size=(310, 230))
         self.label_img = customtkinter.CTkLabel(master=self.root, image=img, text="")
         self.label_img.image = img
@@ -141,6 +152,7 @@ class App:
         self.nova_janela.iconbitmap("icone.ico")
         self.nova_janela.geometry("800x600")
         self.nova_janela.resizable(False, False)
+        self.centralizar_janela(800, 600, self.nova_janela)
         self.root.iconify()
         # Definir a função a ser chamada quando a janela for fechada
         self.nova_janela.protocol("WM_DELETE_WINDOW", self.fechar_janela_cadastro)
@@ -165,7 +177,7 @@ class App:
         # Nome
         nome_label = customtkinter.CTkLabel(self.nova_janela, text="Nome:", bg_color="#ffffdc", text_color='black')
         nome_label.place(x=495, y=10)
-        self.nome_entry = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
+        self.nome_entry = customtkinter.CTkEntry(self.nova_janela, bg_color='#ffffdc')
         self.nome_entry.place(x=560, y=10, )
 
         # Data de nascimento
@@ -181,34 +193,34 @@ class App:
         telefone_label = customtkinter.CTkLabel(self.nova_janela, text="Telefone:", bg_color="#ffffdc",
                                                 text_color='black')
         telefone_label.place(x=490, y=110)
-        self.telefone_entry = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
+        self.telefone_entry = customtkinter.CTkEntry(self.nova_janela, bg_color='#ffffdc')
         self.telefone_entry.place(x=560, y=110)
 
         # CPF -----------------------
         cpf_responsavel = customtkinter.CTkLabel(self.nova_janela, text="CPF do \nResponsável:", bg_color="#ffffdc",
                                                  text_color='black')
         cpf_responsavel.place(x=475, y=150)
-        self.cpf_responsavel = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
+        self.cpf_responsavel = customtkinter.CTkEntry(self.nova_janela, bg_color='#ffffdc')
         self.cpf_responsavel.place(x=560, y=150, )
 
         # RG ------------------
         rg_resp = customtkinter.CTkLabel(self.nova_janela, text="RG do \nResponsável:", bg_color="#ffffdc",
                                          text_color='black')
         rg_resp.place(x=475, y=190)
-        self.rg_resp = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
+        self.rg_resp = customtkinter.CTkEntry(self.nova_janela, bg_color='#ffffdc')
         self.rg_resp.place(x=560, y=190, )
 
         # NOME DO RESPONSÁVEL ----------------------------
         nome_resp = customtkinter.CTkLabel(self.nova_janela, text="Nome do\nResponsável:", bg_color="#ffffdc",
                                            text_color='black')
         nome_resp.place(x=475, y=230)
-        self.nome_resp = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
+        self.nome_resp = customtkinter.CTkEntry(self.nova_janela, bg_color='#ffffdc')
         self.nome_resp.place(x=560, y=230, )
 
         # ENDEREÇO ----------------------------
         endereco = customtkinter.CTkLabel(self.nova_janela, text="Endereço:", bg_color="#ffffdc", text_color='black')
         endereco.place(x=475, y=270)
-        self.endereco = customtkinter.CTkEntry(self.nova_janela, bg_color= '#ffffdc')
+        self.endereco = customtkinter.CTkEntry(self.nova_janela, bg_color='#ffffdc')
         self.endereco.place(x=560, y=270, )
 
         # PROJETO ----------------------------
@@ -367,10 +379,10 @@ class App:
         return True
 
     def calcular_idade(self, data_nascimento_str):
-        data_nascimento = datetime.datetime.strptime(data_nascimento_str, "%Y-%m-%d").date()
-        data_atual = datetime.date.today()
-        idade = data_atual.year - data_nascimento.year - (
-                        (data_atual.month, data_atual.day) < (data_nascimento.month, data_nascimento.day))
+        # Supondo que a string está no formato 'YYYY-MM-DD'
+        data_nascimento = datetime.strptime(data_nascimento_str, '%Y-%m-%d')
+        hoje = datetime.today()
+        idade = hoje.year - data_nascimento.year - ((hoje.month, hoje.day) < (data_nascimento.month, data_nascimento.day))
         return idade
 
     def salvar_informacoes(self):
@@ -426,7 +438,7 @@ class App:
 
         self.cursor.execute('''
         INSERT INTO Crianças (nome, data_nascimento, idade, telefone, endereco, cpf_responsavel, rg_resp, nome_resp, projeto, declaracao_escolar, vacinacao, termo_imagem, certidao)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
         ''', (nome, data_nascimento, idade, telefone, endereco, cpf, rg, nome_resp, projeto, declaracao, vacinacao, termo, certidao))
         conexao.commit()
         messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
@@ -447,7 +459,7 @@ class App:
     def fechar_janela_cadastro(self):
         # Fechar a nova janela
         self.nova_janela.destroy()
-
+        self.centralizar_janela(700, 500, self.root)
         # Abrir novamente a janela principal
         self.root.deiconify()
 
@@ -460,6 +472,7 @@ class App:
         self.janela_voluntario.iconbitmap("icone.ico")
         self.janela_voluntario.geometry("800x600")
         self.janela_voluntario.resizable(False, False)
+        self.centralizar_janela(800, 600, self.janela_voluntario)
         self.root.iconify()
         self.janela_voluntario.protocol("WM_DELETE_WINDOW", self.fechar_janela_voluntario)
 
@@ -578,7 +591,7 @@ class App:
 # Inserir os dados no banco de dados
         self.cursor.execute('''
         INSERT INTO Voluntarios (nome, telefone, email, profissao, projeto, participacao)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        VALUES (?,?,?,?,?,?)
         ''', (nome,telefone, email, profissao, projeto, participacao))
         conexao.commit()
         messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
@@ -587,7 +600,7 @@ class App:
     def fechar_janela_voluntario(self):
         # Fechar a nova janela
         self.janela_voluntario.destroy()
-
+        self.centralizar_janela(700, 500, self.root)
         # Abrir novamente a janela principal
         self.root.deiconify()
 
@@ -605,6 +618,7 @@ class App:
         # self.consulta_criancas.state('zoomed')
         self.consulta_criancas.geometry("1000x600")
         self.consulta_criancas.resizable(False, False)
+        self.centralizar_janela(1000, 600, self.consulta_criancas)
         self.root.iconify()
         self.consulta_criancas.protocol("WM_DELETE_WINDOW", self.fechar_janela_consulta_criancas)
 
@@ -746,10 +760,9 @@ class App:
         self.cursor.execute('SELECT data_nascimento, id FROM Crianças')
         buscar_idade = self.cursor.fetchall()
 
-        for data, idzinho in buscar_idade:
-            atualiza = self.calcular_idade(data.strftime('%Y-%m-%d'))
-            self.cursor.execute('UPDATE Crianças SET idade=%s WHERE id=%s', (atualiza, idzinho))
-
+        for data_nascimento, idzinho in buscar_idade:
+            atualiza = self.calcular_idade(data_nascimento)
+            self.cursor.execute('UPDATE Crianças SET idade = ? WHERE id = ?', (atualiza, idzinho))
 
         # Buscar dados do banco de dados e adicionar ao Treeview
         self.cursor.execute('SELECT * FROM Crianças')
@@ -771,7 +784,7 @@ class App:
                                        parent=self.consulta_criancas)
         if resposta:
 
-            self.cursor.execute("DELETE FROM Crianças WHERE id = %s", (id_selecionado,))
+            self.cursor.execute("DELETE FROM Crianças WHERE id = ?", (id_selecionado,))
             conexao.commit()
 
             # Remover o item da Treeview
@@ -788,7 +801,7 @@ class App:
 
         # Obter os dados da criança selecionada
         id_selecionado = self.tree.item(item_selecionado, "values")[0]
-        self.cursor.execute("SELECT * FROM Crianças WHERE id = %s", (id_selecionado,))
+        self.cursor.execute("SELECT * FROM Crianças WHERE id = ?", (id_selecionado,))
         dados_crianca = self.cursor.fetchone()
 
         if not dados_crianca:
@@ -801,6 +814,7 @@ class App:
         self.janela_edicao.iconbitmap("icone.ico")
         self.janela_edicao.geometry("800x600")
         self.janela_edicao.resizable(False, False)
+        self.centralizar_janela(800, 600, self.janela_edicao)
 
         # Frame na direita -------------
         crianca_frame = customtkinter.CTkFrame(self.janela_edicao, width=470, height=600, corner_radius=20,
@@ -927,8 +941,8 @@ class App:
         # Atualizar os dados no banco de dados
         self.cursor.execute('''
                UPDATE Crianças
-               SET nome = %s, endereco = %s, telefone = %s, projeto = %s, cpf_responsavel = %s, rg_resp = %s, nome_resp = %s
-               WHERE id = %s
+               SET nome = ?, endereco = ?, telefone = ?, projeto = ?, cpf_responsavel = ?, rg_resp = ?, nome_resp = ?
+               WHERE id = ?
                ''', (nome, endereco, telefone, projeto, cpf_responsavel, rg_resp, nome_resp, id_selecionado))
         conexao.commit()
         messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
@@ -952,7 +966,7 @@ class App:
 
         # Obter os dados da criança selecionada
         id_selecionado = self.tree.item(item_selecionado, "values")[0]
-        self.cursor.execute("SELECT frequencia FROM Crianças WHERE id = %s", (id_selecionado,))
+        self.cursor.execute("SELECT frequencia FROM Crianças WHERE id = ?", (id_selecionado,))
         frequencia_atual = self.cursor.fetchone()[0]
 
         # Caixa de diálogo de confirmação
@@ -965,19 +979,15 @@ class App:
             nova_frequencia = frequencia_atual
 
         # Atualizar a frequência no banco de dados
-        self.cursor.execute("UPDATE Crianças SET frequencia = %s WHERE id = %s", (nova_frequencia, id_selecionado))
+        self.cursor.execute("UPDATE Crianças SET frequencia = ? WHERE id = ?", (nova_frequencia, id_selecionado))
         conexao.commit()
 
-        # Calcular a frequência anual esperada (assumindo 100 aulas por ano)
-        total_aulas_por_ano = 50
-
         # Obter a frequência atual da criança selecionada
-        self.cursor.execute("SELECT frequencia FROM Crianças WHERE id = %s", (id_selecionado,))
+        self.cursor.execute("SELECT frequencia FROM Crianças WHERE id = ?", (id_selecionado,))
         frequencia_atual = self.cursor.fetchone()[0]
 
         conexao.commit()
         messagebox.showinfo("Frequência atualizada", "A frequência foi atualizada com sucesso.")
-
 
         # Fechar a janela de edição
         self.consulta_criancas.destroy()
@@ -1002,7 +1012,7 @@ class App:
         for item in self.tree.get_children():
             self.tree.delete(item)
 
-        self.cursor.execute("SELECT * FROM Crianças WHERE nome LIKE %s OR projeto LIKE %s OR endereco LIKE %s OR idade LIKE %s", ('%' + nome_pesquisado + '%', '%' + projeto_pesquisado + '%', '%' + endereco_pesquisado + '%', '%' + idade_pesquisada + '%'))
+        self.cursor.execute("SELECT * FROM Crianças WHERE nome LIKE ? OR projeto LIKE ? OR endereco LIKE ? OR idade LIKE ?", ('%' + nome_pesquisado + '%', '%' + projeto_pesquisado + '%', '%' + endereco_pesquisado + '%', '%' + idade_pesquisada + '%'))
         rows = self.cursor.fetchall()
         if not rows:
             messagebox.showinfo("Nenhum resultado", "Nenhuma criança encontrada com essa informação.")
@@ -1030,7 +1040,7 @@ class App:
     def fechar_janela_consulta_criancas(self):
         # Fechar a nova janela
         self.consulta_criancas.destroy()
-
+        self.centralizar_janela(700, 500, self.root)
         # Abrir novamente a janela principal
         self.root.deiconify()
 
@@ -1049,6 +1059,7 @@ class App:
         self.consulta_voluntarios.iconbitmap("icone.ico")
         self.consulta_voluntarios.geometry("1000x600")
         self.consulta_voluntarios.resizable(False, False)
+        self.centralizar_janela(1000, 600, self.consulta_voluntarios)
         self.root.iconify()
         self.consulta_voluntarios.protocol("WM_DELETE_WINDOW", self.fechar_janela_consulta_voluntarios)
 
@@ -1204,7 +1215,7 @@ class App:
                                        parent=self.consulta_voluntarios)
         if resposta:
             # Deletar o registro do banco de dados
-            self.cursor.execute("DELETE FROM Voluntarios WHERE id = %s", (id_selecionado,))
+            self.cursor.execute("DELETE FROM Voluntarios WHERE id = ?", (id_selecionado,))
             conexao.commit()
 
             # Remover o item da Treeview
@@ -1221,7 +1232,7 @@ class App:
             return
 
         id_selecionado = self.tree.item(item_selecionado, "values")[0]
-        self.cursor.execute("SELECT * FROM Voluntarios WHERE id = %s", (id_selecionado,))
+        self.cursor.execute("SELECT * FROM Voluntarios WHERE id = ?", (id_selecionado,))
         dados_voluntario = self.cursor.fetchone()
 
         if not dados_voluntario:
@@ -1234,6 +1245,7 @@ class App:
         self.janela_editar_voluntario.iconbitmap("icone.ico")
         self.janela_editar_voluntario.geometry("800x600")
         self.janela_editar_voluntario.resizable(False, False)
+        self.centralizar_janela(800, 600, self.janela_editar_voluntario)
 
         crianca_frame = customtkinter.CTkFrame(self.janela_editar_voluntario, width=470, height=600, corner_radius=20,
                                                fg_color="#ffffdc")
@@ -1329,8 +1341,8 @@ class App:
         # Atualizar os dados no banco de dados
         self.cursor.execute('''
                 UPDATE Voluntarios
-                SET nome = %s, telefone = %s, email = %s, profissao = %s, projeto = %s
-                WHERE id = %s
+                SET nome = ?, telefone = ?, email = ?, profissao = ?, projeto = ?
+                WHERE id = ?
         ''', (nome, telefone, email, profissao, projeto, id_selecionado))
         conexao.commit()
         messagebox.showinfo("Dados Salvos", "Os dados foram salvos com sucesso.")
@@ -1352,7 +1364,7 @@ class App:
             return
 
         id_selecionado = self.tree.item(item_selecionado, "values")[0]
-        self.cursor.execute("SELECT frequencia FROM Voluntarios WHERE id = %s", (id_selecionado,))
+        self.cursor.execute("SELECT frequencia FROM Voluntarios WHERE id = ?", (id_selecionado,))
         frequencia_atual = self.cursor.fetchone()[0]
 
         # Caixa de diálogo de confirmação
@@ -1364,7 +1376,7 @@ class App:
         else:  # Se o usuário cancelou
             nova_frequencia = frequencia_atual
 
-        self.cursor.execute("UPDATE Voluntarios SET frequencia = %s WHERE id = %s", (nova_frequencia, id_selecionado))
+        self.cursor.execute("UPDATE Voluntarios SET frequencia = ? WHERE id = ?", (nova_frequencia, id_selecionado))
         conexao.commit()
         messagebox.showinfo("Frequência atualizada", "A frequência foi atualizada com sucesso.")
 
@@ -1388,7 +1400,7 @@ class App:
             self.tree.delete(item)
 
         # Consultar o banco de dados para obter crianças cujos nomes correspondem à pesquisa
-        self.cursor.execute("SELECT * FROM Voluntarios WHERE nome LIKE %s OR projeto LIKE %s", ('%' + nome_pesquisado + '%', '%' + projeto_pesquisado + '%'))
+        self.cursor.execute("SELECT * FROM Voluntarios WHERE nome LIKE ? OR projeto LIKE ?", ('%' + nome_pesquisado + '%', '%' + projeto_pesquisado + '%'))
         rows = self.cursor.fetchall()
 
         if not rows:
@@ -1418,9 +1430,10 @@ class App:
     def fechar_janela_consulta_voluntarios(self):
         # Fechar a nova janela
         self.consulta_voluntarios.destroy()
-
+        self.centralizar_janela(700, 500, self.root)
         # Abrir novamente a janela principal
         self.root.deiconify()
+
 
 
 
