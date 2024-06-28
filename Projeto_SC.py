@@ -891,15 +891,13 @@ class App:
                                                 corner_radius=15, bg_color='#ffffdc', command=self.salvar_edicao)
         salvar_button.place(x=490, y=500)
 
-        # Preenchendo os campos com os dados da primeira criança (ajuste conforme necessário)
-        if resultados:
-            self.nome_entry.insert(customtkinter.END, resultados[0][0])
-            self.endereco_entry.insert(customtkinter.END, resultados[0][1])
-            self.telefone_entry.insert(customtkinter.END, resultados[0][2])
-            self.projeto_entry.insert(customtkinter.END, resultados[0][3])
-            self.cpf_responsavel.insert(customtkinter.END, resultados[0][4])
-            self.rg_resp.insert(customtkinter.END, resultados[0][5])
-            self.nome_resp.insert(customtkinter.END, resultados[0][6])
+        self.nome_entry.insert(customtkinter.END, dados_crianca[1])
+        self.endereco_entry.insert(customtkinter.END, dados_crianca[5])
+        self.telefone_entry.insert(customtkinter.END, dados_crianca[4])
+        self.projeto_entry.insert(customtkinter.END, dados_crianca[9])
+        self.cpf_responsavel.insert(customtkinter.END, dados_crianca[6])
+        self.rg_resp.insert(customtkinter.END, dados_crianca[7])
+        self.nome_resp.insert(customtkinter.END, dados_crianca[8])
 
 
 
@@ -1303,12 +1301,11 @@ class App:
         self.projeto = customtkinter.CTkEntry(self.janela_editar_voluntario, bg_color='#ffffdc')
         self.projeto.place(x=560, y=320, )
 
-        if resultados:
-            self.nome_entry.insert(customtkinter.END, resultados[0][0])
-            self.telefone_entry.insert(customtkinter.END, resultados[0][1])
-            self.email_entry.insert(customtkinter.END, resultados[0][2])
-            self.profissao_entry.insert(customtkinter.END, resultados[0][3])
-            self.projeto.insert(customtkinter.END, resultados[0][4])
+        self.nome_entry.insert(customtkinter.END, dados_voluntario[1])
+        self.telefone_entry.insert(customtkinter.END, dados_voluntario[2])
+        self.email_entry.insert(customtkinter.END, dados_voluntario[3])
+        self.profissao_entry.insert(customtkinter.END, dados_voluntario[4])
+        self.projeto.insert(customtkinter.END, dados_voluntario[5])
 
 
 
